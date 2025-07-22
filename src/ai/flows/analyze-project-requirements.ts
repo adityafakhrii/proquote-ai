@@ -28,7 +28,7 @@ const AnalyzeProjectRequirementsOutputSchema = z.object({
       technicalModal: z.number().describe('Estimated costs for technical capital/tools.'),
       manpower: z.number().describe('Estimated costs for manpower.'),
       development: z.number().describe('Estimated costs for development.'),
-      profitMargin: z.number().describe('Profit margin for the project.'),
+      profitMargin: z.number().describe('Profit margin percentage for the project (e.g., 20 for 20%).'),
   }),
   estimatedTimeline: z
     .array(z.object({
@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzeProjectRequirementsOutputSchema},
   prompt: `Anda adalah seorang manajer proyek ahli. Analisis dokumen persyaratan proyek berikut dan berikan estimasi untuk:
 1.  **Peran Tim & Jumlah Orang**: Buat daftar peran yang dibutuhkan dan jumlah orang untuk setiap peran. Contoh: [{role: "Project Manager", count: 1}, {role: "Developer", count: 2}].
-2.  **Rincian Biaya (IDR)**: Rincikan biaya menjadi modal teknis (untuk tools/software), tenaga kerja (manpower), dan pengembangan (infrastruktur/dll.). Tambahkan juga margin keuntungan yang wajar.
+2.  **Rincian Biaya (IDR)**: Rincikan biaya menjadi modal teknis (untuk tools/software), tenaga kerja (manpower), dan pengembangan (infrastruktur/dll.). Tambahkan juga margin keuntungan dalam bentuk persentase (misal: 20 untuk 20%).
 3.  **Linimasa Proyek**: Buat tabel linimasa bulanan. Setiap baris harus berisi bulan (sebagai angka), fase (misalnya, "Perencanaan"), dan aktivitas utama. Contoh: [{month: 1, phase: "Discovery", activity: "Analisis Kebutuhan"}, {month: 2, phase: "Development", activity: "Pengembangan Fitur A"}].
 4.  **Saran Teknologi**: Buat daftar teknologi atau kerangka kerja yang disarankan.
 

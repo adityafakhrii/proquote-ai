@@ -42,8 +42,9 @@ export function ProposalStep({
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-  const totalCost = costDetails.technicalModal + costDetails.manpower + costDetails.development;
-  const grandTotal = totalCost + costDetails.profitMargin;
+  const subtotalCost = costDetails.technicalModal + costDetails.manpower + costDetails.development;
+  const profitAmount = subtotalCost * (costDetails.profitMargin / 100);
+  const grandTotal = subtotalCost + profitAmount;
 
   return (
     <div className="space-y-4">
@@ -96,33 +97,43 @@ export function ProposalStep({
               <Wallet className="mr-3 h-6 w-6 text-accent" />
               Estimasi Biaya Proyek
             </h3>
-            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-                <div>
-                    <h4 className="font-semibold text-lg">Rincian Komponen Biaya</h4>
-                    <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
-                        <li>Modal Teknis: <span className="font-medium text-foreground">{formatCurrency(costDetails.technicalModal)}</span></li>
-                        <li>Manpower: <span className="font-medium text-foreground">{formatCurrency(costDetails.manpower)}</span></li>
-                        <li>Pengembangan: <span className="font-medium text-foreground">{formatCurrency(costDetails.development)}</span></li>
-                    </ul>
-                    <Separator className="my-2"/>
-                     <div className="flex justify-between items-center font-semibold">
-                        <span>Subtotal Biaya</span>
-                        <span>{formatCurrency(totalCost)}</span>
-                    </div>
-                     <div className="flex justify-between items-center text-muted-foreground mt-1">
-                        <span>Profit/Margin</span>
-                        <span>{formatCurrency(costDetails.profitMargin)}</span>
-                    </div>
+            <div className="space-y-4">
+                <h4 className="font-semibold text-lg">Rincian Komponen Biaya</h4>
+                <div className="border rounded-lg">
+                    <Table>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="text-muted-foreground">Modal Teknis</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.technicalModal)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="text-muted-foreground">Manpower</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.manpower)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="text-muted-foreground">Pengembangan</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.development)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="text-muted-foreground">Subtotal Biaya</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(subtotalCost)}</TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell className="text-muted-foreground">Profit/Margin ({costDetails.profitMargin}%)</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(profitAmount)}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
-                 <div>
-                    <h4 className="font-semibold text-lg">Total Biaya Proyek</h4>
-                    <p className="text-4xl font-bold font-headline text-primary mt-2">
+                 <div className="bg-primary/10 p-4 rounded-lg flex justify-between items-center">
+                    <h4 className="font-semibold text-lg text-primary">Total Biaya Proyek</h4>
+                    <p className="text-2xl font-bold font-headline text-primary">
                         {formatCurrency(grandTotal)}
                     </p>
-                     <p className="text-sm text-muted-foreground mt-2">
-                        Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
-                    </p>
                 </div>
+                 <p className="text-sm text-muted-foreground text-center">
+                    Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
+                </p>
             </div>
             <div className="mt-6 bg-secondary/50 p-4 rounded-lg">
                 <h4 className="font-semibold flex items-center"><Landmark className="mr-2 h-5 w-5"/>Skema Pembayaran Bertahap</h4>
@@ -168,7 +179,7 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <Cpu className="mr-3 h-6 w-6 text-accent" />
-              Tumpukan Teknologi yang Disarankan
+              Tech Stack yang Digunakan
             </h3>
             <div className="flex flex-wrap gap-2">
               {suggestedTechnologies.map((tech, index) => (

@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, Calendar, GanttChartSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, Calendar, GanttChartSquare, Percent } from 'lucide-react';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
@@ -187,8 +187,13 @@ export function EditStep({
                     <Input id="development" type="number" value={costDetails.development} onChange={(e) => handleCostChange('development', e.target.value)} placeholder="cth., 10000000" />
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="profit-margin">Margin Keuntungan (IDR)</Label>
-                    <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => handleCostChange('profitMargin', e.target.value)} placeholder="cth., 10000000" />
+                    <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
+                    <div className="flex items-center">
+                        <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => handleCostChange('profitMargin', e.target.value)} placeholder="cth., 20" className="rounded-r-none"/>
+                        <span className="flex items-center justify-center bg-muted text-muted-foreground h-10 w-10 rounded-r-md border border-l-0 border-input">
+                            <Percent className="h-4 w-4"/>
+                        </span>
+                    </div>
                   </div>
                 </div>
               </div>
