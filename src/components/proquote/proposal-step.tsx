@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Printer, Users, Wallet, Cpu, GanttChartSquare, Percent, Landmark } from 'lucide-react';
+import { ArrowLeft, Printer, Users, Wallet, Cpu, GanttChartSquare, Landmark, FileText, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Logo } from './logo';
 import { id } from 'date-fns/locale';
@@ -22,6 +22,7 @@ interface ProposalStepProps {
   fileName: string;
   onPrint: () => void;
   onBack: () => void;
+  manpowerCost: number;
 }
 
 export function ProposalStep({
@@ -29,12 +30,15 @@ export function ProposalStep({
   fileName,
   onPrint,
   onBack,
+  manpowerCost
 }: ProposalStepProps) {
   const {
     estimatedRoles,
     costDetails,
     estimatedTimeline,
     suggestedTechnologies,
+    projectSummary,
+    requiredFeatures
   } = analysisResult;
 
   const today = format(new Date(), 'd MMMM yyyy', { locale: id });
@@ -42,7 +46,7 @@ export function ProposalStep({
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-  const subtotalCost = costDetails.technicalModal + costDetails.manpower + costDetails.development;
+  const subtotalCost = costDetails.technicalModal + manpowerCost + costDetails.development;
   const profitAmount = subtotalCost * (costDetails.profitMargin / 100);
   const grandTotal = subtotalCost + profitAmount;
 
@@ -71,11 +75,39 @@ export function ProposalStep({
           <h2 className="text-2xl font-headline font-semibold">
             Tinjauan Proyek untuk: {fileName.replace('.pdf', '')}
           </h2>
-          <p className="text-muted-foreground">
-            Dokumen ini menguraikan perkiraan ruang lingkup, sumber daya, linimasa, dan tumpukan teknologi untuk proyek yang diusulkan berdasarkan persyaratan yang diberikan.
-          </p>
         </CardHeader>
         <CardContent className="px-8 space-y-8">
+          {/* Project Summary */}
+          <section>
+            <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
+                <FileText className="mr-3 h-6 w-6 text-accent" />
+                Ringkasan Proyek
+            </h3>
+            <p className="text-muted-foreground">
+                {projectSummary}
+            </p>
+          </section>
+
+          <Separator/>
+          
+          {/* Required Features */}
+          <section>
+            <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
+                <CheckCircle className="mr-3 h-6 w-6 text-accent" />
+                Fitur-fitur Wajib
+            </h3>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 list-inside">
+                {requiredFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                        <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1 shrink-0" />
+                        <span>{feature}</span>
+                    </li>
+                ))}
+            </ul>
+          </section>
+
+          <Separator />
+
           {/* Roles */}
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
@@ -107,11 +139,11 @@ export function ProposalStep({
                                 <TableCell className="text-right font-medium">{formatCurrency(costDetails.technicalModal)}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="text-muted-foreground">Manpower</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.manpower)}</TableCell>
+                                <TableCell className="text-muted-foreground">Tenaga Kerja (Manpower)</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(manpowerCost)}</TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell className="text-muted-foreground">Pengembangan</TableCell>
+                                <TableCell className="text-muted-foreground">Pengembangan Tambahan</TableCell>
                                 <TableCell className="text-right font-medium">{formatCurrency(costDetails.development)}</TableCell>
                             </TableRow>
                             <TableRow>

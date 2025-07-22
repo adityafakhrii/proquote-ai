@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, useMemo } from 'react';
 import {
   analyzeProjectRequirements,
   type AnalyzeProjectRequirementsOutput,
@@ -23,6 +23,19 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] =
     useState<EditableAnalysis | null>(null);
   const { toast } = useToast();
+
+  const manpowerCost = useMemo(() => {
+    if (!analysisResult) return 0;
+    const { estimatedRoles, estimatedTimeline } = analysisResult;
+    const projectDuration = estimatedTimeline.length > 0 
+      ? Math.max(...estimatedTimeline.map(t => t.month)) 
+      : 0;
+    
+    return estimatedRoles.reduce((total, role) => {
+      return total + (role.count * role.monthlySalary * projectDuration);
+    }, 0);
+  }, [analysisResult]);
+
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -135,6 +148,7 @@ export default function Home() {
               onUpdate={handleUpdate}
               onNext={handleGenerateProposal}
               onBack={handleBack}
+              manpowerCost={manpowerCost}
             />
           )}
           {step === 3 && analysisResult && (
@@ -143,6 +157,7 @@ export default function Home() {
               fileName={fileName}
               onPrint={handlePrint}
               onBack={handleBack}
+              manpowerCost={manpowerCost}
             />
           )}
         </div>

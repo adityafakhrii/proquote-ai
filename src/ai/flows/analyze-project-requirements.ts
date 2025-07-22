@@ -21,14 +21,19 @@ const AnalyzeProjectRequirementsInputSchema = z.object({
 export type AnalyzeProjectRequirementsInput = z.infer<typeof AnalyzeProjectRequirementsInputSchema>;
 
 const AnalyzeProjectRequirementsOutputSchema = z.object({
+  projectSummary: z.string().describe('Deskripsi singkat dan ringkasan umum dari proyek.'),
+  requiredFeatures: z.array(z.string()).describe('Daftar fitur-fitur wajib yang harus ada di dalam proyek berdasarkan dokumen.'),
   estimatedRoles: z
-    .array(z.object({ role: z.string(), count: z.number() }))
-    .describe('Estimated roles and number of people for the project.'),
+    .array(z.object({ 
+        role: z.string().describe('Jabatan atau peran yang dibutuhkan.'), 
+        count: z.number().describe('Jumlah orang untuk peran tersebut.'),
+        monthlySalary: z.number().describe('Estimasi gaji bulanan per orang untuk peran ini dalam IDR, berdasarkan data UMR atau standar industri.'),
+    }))
+    .describe('Estimasi peran, jumlah orang, dan gaji bulanan per peran.'),
   costDetails: z.object({
-      technicalModal: z.number().describe('Estimated costs for technical capital/tools.'),
-      manpower: z.number().describe('Estimated costs for manpower.'),
-      development: z.number().describe('Estimated costs for development.'),
-      profitMargin: z.number().describe('Profit margin percentage for the project (e.g., 20 for 20%).'),
+      technicalModal: z.number().describe('Estimasi biaya untuk modal teknis (tools, software, lisensi, dll).'),
+      development: z.number().describe('Estimasi biaya untuk pengembangan tambahan (infrastruktur, API pihak ketiga, dll).'),
+      profitMargin: z.number().describe('Profit margin dalam bentuk persentase untuk proyek (misal: 20 untuk 20%).'),
   }),
   estimatedTimeline: z
     .array(z.object({
@@ -36,10 +41,10 @@ const AnalyzeProjectRequirementsOutputSchema = z.object({
         phase: z.string(),
         activity: z.string(),
     }))
-    .describe('Estimated timeline for the project, broken down by month, phase, and main activity.'),
+    .describe('Estimasi linimasa proyek, dipecah per bulan, fase, dan aktivitas utama.'),
   suggestedTechnologies: z
     .array(z.string())
-    .describe('Suggested technologies or frameworks to use for the project.'),
+    .describe('Saran teknologi atau framework yang akan digunakan untuk proyek.'),
 });
 export type AnalyzeProjectRequirementsOutput = z.infer<typeof AnalyzeProjectRequirementsOutputSchema>;
 
@@ -53,13 +58,17 @@ const prompt = ai.definePrompt({
   name: 'analyzeProjectRequirementsPrompt',
   input: {schema: AnalyzeProjectRequirementsInputSchema},
   output: {schema: AnalyzeProjectRequirementsOutputSchema},
-  prompt: `Anda adalah seorang manajer proyek ahli. Analisis dokumen persyaratan proyek berikut dan berikan estimasi untuk:
-1.  **Peran Tim & Jumlah Orang**: Buat daftar peran yang dibutuhkan dan jumlah orang untuk setiap peran. Contoh: [{role: "Project Manager", count: 1}, {role: "Developer", count: 2}].
-2.  **Rincian Biaya (IDR)**: Rincikan biaya menjadi modal teknis (untuk tools/software), tenaga kerja (manpower), dan pengembangan (infrastruktur/dll.). Tambahkan juga margin keuntungan dalam bentuk persentase (misal: 20 untuk 20%).
-3.  **Linimasa Proyek**: Buat tabel linimasa bulanan. Setiap baris harus berisi bulan (sebagai angka), fase (misalnya, "Perencanaan"), dan aktivitas utama. Contoh: [{month: 1, phase: "Discovery", activity: "Analisis Kebutuhan"}, {month: 2, phase: "Development", activity: "Pengembangan Fitur A"}].
-4.  **Saran Teknologi**: Buat daftar teknologi atau kerangka kerja yang disarankan.
+  prompt: `Anda adalah seorang manajer proyek dan analis bisnis ahli. Analisis dokumen persyaratan proyek berikut dan berikan data dalam format JSON yang terstruktur.
 
 Dokumen: {{media url=documentDataUri}}
+
+Tugas Anda:
+1.  **Ringkasan Proyek**: Tulis deskripsi singkat dan ringkasan umum dari proyek ini.
+2.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
+3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan, jumlah orang per peran, dan estimasi gaji bulanan (dalam IDR) untuk setiap peran. Gunakan data gaji yang wajar untuk pasar Indonesia (misalnya, merujuk pada data UMR atau situs seperti Glassdoor). Contoh: [{role: "Frontend Developer", count: 2, monthlySalary: 8000000}].
+4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (tools/software) dan 'Biaya Pengembangan Tambahan' (infrastruktur, dll.). Set profit margin default ke 20%. Biaya manpower akan dihitung nanti.
+5.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini.
+6.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.
 `,
 });
 
