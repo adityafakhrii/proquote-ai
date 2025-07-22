@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Printer, Users, DollarSign, Cpu, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { Logo } from './logo';
+import { id } from 'date-fns/locale';
 
 interface ProposalStepProps {
   analysisResult: EditableAnalysis;
@@ -36,7 +37,7 @@ export function ProposalStep({
     suggestedTechnologies,
   } = analysisResult;
 
-  const today = format(new Date(), 'MMMM d, yyyy');
+  const today = format(new Date(), 'd MMMM yyyy', { locale: id });
 
   return (
     <div className="space-y-4">
@@ -48,10 +49,10 @@ export function ProposalStep({
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="font-headline text-4xl text-primary">
-                Project Proposal
+                Proposal Proyek
               </CardTitle>
               <CardDescription className="pt-2">
-                Prepared on: {today}
+                Disiapkan pada: {today}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2 text-primary no-print">
@@ -61,13 +62,10 @@ export function ProposalStep({
           </div>
           <Separator className="my-6" />
           <h2 className="text-2xl font-headline font-semibold">
-            Project Overview for: {fileName.replace('.pdf', '')}
+            Tinjauan Proyek untuk: {fileName.replace('.pdf', '')}
           </h2>
           <p className="text-muted-foreground">
-            This document outlines the estimated scope, resources, timeline, and
-            technology stack for the proposed project based on the provided
-
-            requirements.
+            Dokumen ini menguraikan perkiraan ruang lingkup, sumber daya, linimasa, dan tumpukan teknologi untuk proyek yang diusulkan berdasarkan persyaratan yang diberikan.
           </p>
         </CardHeader>
         <CardContent className="px-8 space-y-8">
@@ -75,7 +73,7 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <Users className="mr-3 h-6 w-6 text-accent" />
-              Required Roles
+              Peran yang Dibutuhkan
             </h3>
             <ul className="list-disc list-inside space-y-1 pl-2">
               {estimatedRoles.map((role, index) => (
@@ -90,14 +88,13 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <DollarSign className="mr-3 h-6 w-6 text-accent" />
-              Estimated Labor Costs
+              Estimasi Biaya Tenaga Kerja
             </h3>
             <p className="text-4xl font-bold font-headline text-primary">
-              ${new Intl.NumberFormat().format(estimatedLaborCosts)}
+              {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(estimatedLaborCosts)}
             </p>
             <p className="text-sm text-muted-foreground">
-              This is an estimate and may be subject to change based on final
-              scope.
+              Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
             </p>
           </section>
 
@@ -107,7 +104,7 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <Calendar className="mr-3 h-6 w-6 text-accent" />
-              Estimated Project Timeline
+              Estimasi Linimasa Proyek
             </h3>
             <div className="w-full">
                 <GanttChart timeline={estimatedTimeline} />
@@ -120,7 +117,7 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <Cpu className="mr-3 h-6 w-6 text-accent" />
-              Suggested Technology Stack
+              Tumpukan Teknologi yang Disarankan
             </h3>
             <div className="flex flex-wrap gap-2">
               {suggestedTechnologies.map((tech, index) => (
@@ -133,17 +130,17 @@ export function ProposalStep({
         </CardContent>
         <CardFooter className="p-8">
             <p className="text-xs text-muted-foreground italic">
-                This proposal was generated with the assistance of AI. All estimates are for planning purposes and should be validated by project stakeholders.
+                Proposal ini dibuat dengan bantuan AI. Semua perkiraan adalah untuk tujuan perencanaan dan harus divalidasi oleh para pemangku kepentingan proyek.
             </p>
         </CardFooter>
       </Card>
       
       <div className="flex justify-between no-print">
         <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Edit
+          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali untuk Mengedit
         </Button>
         <Button onClick={onPrint}>
-          <Printer className="mr-2 h-4 w-4" /> Export to PDF
+          <Printer className="mr-2 h-4 w-4" /> Ekspor ke PDF
         </Button>
       </div>
     </div>

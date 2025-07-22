@@ -33,8 +33,8 @@ export default function Home() {
       } else {
         toast({
           variant: 'destructive',
-          title: 'Invalid File Type',
-          description: 'Please upload a PDF file.',
+          title: 'Jenis File Tidak Valid',
+          description: 'Silakan unggah file PDF.',
         });
       }
     }
@@ -44,8 +44,8 @@ export default function Home() {
     if (!file) {
       toast({
         variant: 'destructive',
-        title: 'No File Selected',
-        description: 'Please select a project requirements PDF to analyze.',
+        title: 'Tidak Ada File yang Dipilih',
+        description: 'Silakan pilih PDF persyaratan proyek untuk dianalisis.',
       });
       return;
     }
@@ -63,15 +63,15 @@ export default function Home() {
         setIsLoading(false);
       };
       reader.onerror = () => {
-        throw new Error('Failed to read the file.');
+        throw new Error('Gagal membaca file.');
       };
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Analysis Failed',
+        title: 'Analisis Gagal',
         description:
-          'Something went wrong while analyzing your document. Please try again.',
+          'Terjadi kesalahan saat menganalisis dokumen Anda. Silakan coba lagi.',
       });
       setIsLoading(false);
     }
@@ -115,7 +115,7 @@ export default function Home() {
             </h1>
           </div>
           {step > 1 && (
-             <Button variant="ghost" onClick={handleStartOver}>Start Over</Button>
+             <Button variant="ghost" onClick={handleStartOver}>Mulai dari Awal</Button>
           )}
         </div>
       </header>
@@ -148,7 +148,7 @@ export default function Home() {
         </div>
       </main>
       <footer className="text-center p-4 text-sm text-muted-foreground">
-        Powered by AI. Verify all estimates before sending to clients.
+        Didukung oleh AI. Verifikasi semua perkiraan sebelum mengirim ke klien.
       </footer>
     </div>
   );

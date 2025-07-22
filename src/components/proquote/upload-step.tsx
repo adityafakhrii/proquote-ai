@@ -31,22 +31,22 @@ export function UploadStep({
     <Card className="w-full animate-in fade-in-50">
       <CardHeader className="text-center">
         <CardTitle className="font-headline text-3xl">
-          Generate a Project Proposal with AI
+          Hasilkan Proposal Proyek dengan AI
         </CardTitle>
         <CardDescription className="pt-2">
-          Start by uploading your project requirements document (PDF). Our AI
-          will analyze it to create a detailed estimate.
+          Mulailah dengan mengunggah dokumen persyaratan proyek Anda (PDF). AI
+          kami akan menganalisisnya untuk membuat perkiraan terperinci.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Label htmlFor="pdf-upload" className="sr-only">Upload PDF</Label>
+        <Label htmlFor="pdf-upload" className="sr-only">Unggah PDF</Label>
         <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors duration-300">
             <UploadCloud className="h-12 w-12 text-muted-foreground" />
             <p className="mt-4 text-lg font-semibold">
-                Drag & drop your PDF here or click to browse
+                Seret & lepas PDF Anda di sini atau klik untuk menelusuri
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-                Maximum file size: 10MB
+                Ukuran file maksimum: 10MB
             </p>
             <Input
                 id="pdf-upload"
@@ -73,12 +73,12 @@ export function UploadStep({
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Analyzing...
+              Menganalisis...
             </>
           ) : (
             <>
               <Wand2 className="mr-2 h-5 w-5" />
-              Analyze Project
+              Analisis Proyek
             </>
           )}
         </Button>

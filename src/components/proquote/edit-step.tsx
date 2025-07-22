@@ -65,26 +65,25 @@ export function EditStep({
     <Card className="w-full animate-in fade-in-50">
       <CardHeader>
         <CardTitle className="font-headline text-3xl">
-          Review & Adjust Estimates
+          Tinjau & Sesuaikan Estimasi
         </CardTitle>
         <CardDescription>
-          Fine-tune the AI-generated estimates to match your expertise and project
-          specifics.
+          Sempurnakan perkiraan yang dihasilkan AI agar sesuai dengan keahlian dan kekhususan proyek Anda.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="roles" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="roles"><Users className="mr-2"/>Roles</TabsTrigger>
-            <TabsTrigger value="costs"><DollarSign className="mr-2"/>Costs</TabsTrigger>
-            <TabsTrigger value="timeline"><Calendar className="mr-2"/>Timeline</TabsTrigger>
-            <TabsTrigger value="tech"><Cpu className="mr-2"/>Tech</TabsTrigger>
+            <TabsTrigger value="roles"><Users className="mr-2"/>Peran</TabsTrigger>
+            <TabsTrigger value="costs"><DollarSign className="mr-2"/>Biaya</TabsTrigger>
+            <TabsTrigger value="timeline"><Calendar className="mr-2"/>Linimasa</TabsTrigger>
+            <TabsTrigger value="tech"><Cpu className="mr-2"/>Teknologi</TabsTrigger>
           </TabsList>
           
           <div className="pt-6">
             <TabsContent value="roles">
               <div className="space-y-4">
-                <Label>Required Roles</Label>
+                <Label>Peran yang Dibutuhkan</Label>
                 <div className="space-y-2">
                   {estimatedRoles.map((role, index) => (
                     <div key={index} className="flex items-center gap-2">
@@ -93,7 +92,7 @@ export function EditStep({
                         onChange={(e) =>
                           handleListChange('estimatedRoles', index, e.target.value)
                         }
-                        placeholder="e.g., Project Manager"
+                        placeholder="cth., Manajer Proyek"
                       />
                       <Button
                         variant="ghost"
@@ -109,16 +108,16 @@ export function EditStep({
                   variant="outline"
                   onClick={() => handleAddItem('estimatedRoles')}
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Role
+                  <Plus className="mr-2 h-4 w-4" /> Tambah Peran
                 </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="costs">
               <div className="space-y-2">
-                <Label htmlFor="labor-costs">Estimated Labor Costs (USD)</Label>
+                <Label htmlFor="labor-costs">Estimasi Biaya Tenaga Kerja (IDR)</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground">Rp</span>
                   <Input
                     id="labor-costs"
                     type="number"
@@ -127,7 +126,7 @@ export function EditStep({
                       onUpdate({ estimatedLaborCosts: Number(e.target.value) })
                     }
                     className="pl-8"
-                    placeholder="50000"
+                    placeholder="50000000"
                   />
                 </div>
               </div>
@@ -135,24 +134,24 @@ export function EditStep({
 
             <TabsContent value="timeline">
               <div className="space-y-2">
-                <Label htmlFor="timeline">Estimated Timeline (Gantt Chart Format)</Label>
+                <Label htmlFor="timeline">Estimasi Linimasa (Format Gantt Chart)</Label>
                 <Textarea
                   id="timeline"
                   value={estimatedTimeline}
                   onChange={(e) => onUpdate({ estimatedTimeline: e.target.value })}
                   rows={10}
-                  placeholder="Task Name - YYYY-MM-DD to YYYY-MM-DD"
+                  placeholder="Nama Tugas - YYYY-MM-DD ke YYYY-MM-DD"
                   className="font-code"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Each task should be on a new line. Format: Task - YYYY-MM-DD to YYYY-MM-DD
+                  Setiap tugas harus berada di baris baru. Format: Tugas - YYYY-MM-DD ke YYYY-MM-DD
                 </p>
               </div>
             </TabsContent>
 
             <TabsContent value="tech">
               <div className="space-y-4">
-                <Label>Suggested Technologies</Label>
+                <Label>Teknologi yang Disarankan</Label>
                 <div className="space-y-2">
                   {suggestedTechnologies.map((tech, index) => (
                     <div key={index} className="flex items-center gap-2">
@@ -161,7 +160,7 @@ export function EditStep({
                         onChange={(e) =>
                           handleListChange('suggestedTechnologies', index, e.target.value)
                         }
-                        placeholder="e.g., React, Next.js"
+                        placeholder="cth., React, Next.js"
                       />
                       <Button
                         variant="ghost"
@@ -177,7 +176,7 @@ export function EditStep({
                   variant="outline"
                   onClick={() => handleAddItem('suggestedTechnologies')}
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Add Technology
+                  <Plus className="mr-2 h-4 w-4" /> Tambah Teknologi
                 </Button>
               </div>
             </TabsContent>
@@ -186,10 +185,10 @@ export function EditStep({
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
         <Button onClick={onNext} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-          Generate Proposal <ArrowRight className="ml-2 h-4 w-4" />
+          Buat Proposal <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
