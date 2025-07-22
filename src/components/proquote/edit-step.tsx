@@ -14,8 +14,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info } from 'lucide-react';
-import { useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
@@ -24,6 +27,11 @@ interface EditStepProps {
   onBack: () => void;
   manpowerCost: number;
 }
+
+type SalarySuggestion = {
+    source: string;
+    salary: number;
+};
 
 export function EditStep({
   analysisResult,
@@ -40,6 +48,9 @@ export function EditStep({
     projectSummary,
     requiredFeatures
   } = analysisResult;
+
+  const [salarySuggestions, setSalarySuggestions] = useState<SalarySuggestion[]>([]);
+  const [isSuggestingSalary, setIsSuggestingSalary] = useState<number | null>(null);
   
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
@@ -48,9 +59,8 @@ export function EditStep({
     new Intl.NumberFormat('id-ID').format(value);
 
   const parseFormattedNumber = (value: string): number => {
-    // Remove all non-digit characters except for a potential single decimal comma
-    const cleanedValue = value.replace(/[^\d,]/g, '').replace(',', '.');
-    return Number(cleanedValue);
+    const cleanedValue = value.replace(/[^\d,]/g, '').replace(/,/g, '.').replace(/\.(?=.*\.)/g, '');
+    return Number(cleanedValue.replace(/\./g, ''));
   };
 
   const projectDuration = useMemo(() => {
@@ -68,7 +78,8 @@ export function EditStep({
     if (field === 'role') {
       roleToUpdate.role = value as string;
     } else if (field === 'monthlySalary') {
-      roleToUpdate.monthlySalary = parseFormattedNumber(value as string);
+      const parsedValue = typeof value === 'string' ? parseFormattedNumber(value) : value;
+      roleToUpdate.monthlySalary = parsedValue;
     }
      else {
       roleToUpdate[field] = Number(value);
@@ -155,6 +166,24 @@ export function EditStep({
     onUpdate({ requiredFeatures: requiredFeatures.filter((_, i) => i !== index) });
   };
 
+  const onSuggestSalary = async (index: number, role: string) => {
+    if (!role) return;
+    setIsSuggestingSalary(index);
+    setSalarySuggestions([]);
+    try {
+        const result = await getSalarySuggestion({ role });
+        setSalarySuggestions(result.suggestions);
+    } catch (error) {
+        console.error("Failed to get salary suggestions", error);
+    } finally {
+        setIsSuggestingSalary(null);
+    }
+  };
+
+  const onSelectSuggestion = (index: number, salary: number) => {
+    handleRoleChange(index, 'monthlySalary', salary);
+    setSalarySuggestions([]);
+  };
 
   return (
     <Card className="w-full animate-in fade-in-50">
@@ -214,7 +243,7 @@ export function EditStep({
 
             <TabsContent value="roles">
               <div className="space-y-4">
-                <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2 font-medium">
+                <div className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2 font-medium">
                   <Label>Peran</Label>
                   <Label className="text-center">Jumlah</Label>
                   <Label>Gaji/Bulan (IDR)</Label>
@@ -222,7 +251,7 @@ export function EditStep({
                 </div>
                 <div className="space-y-2">
                   {estimatedRoles.map((role, index) => (
-                    <div key={index} className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
+                    <div key={index} className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2">
                       <Input
                         value={role.role}
                         onChange={(e) => handleRoleChange(index, 'role', e.target.value)}
@@ -235,12 +264,41 @@ export function EditStep({
                         className="w-20 text-center"
                         min={1}
                       />
-                       <Input
-                        type="text"
-                        value={formatNumber(role.monthlySalary)}
-                        onChange={(e) => handleRoleChange(index, 'monthlySalary', e.target.value)}
-                        placeholder="cth., 8.000.000"
-                      />
+                      <div className="flex items-center gap-1">
+                         <Input
+                          type="text"
+                          value={formatNumber(role.monthlySalary)}
+                          onChange={(e) => handleRoleChange(index, 'monthlySalary', e.target.value)}
+                          placeholder="cth., 8.000.000"
+                        />
+                        <Popover onOpenChange={() => setSalarySuggestions([])}>
+                          <PopoverTrigger asChild>
+                             <Button variant="outline" size="icon" onClick={() => onSuggestSalary(index, role.role)} disabled={!role.role || isSuggestingSalary === index}>
+                                {isSuggestingSalary === index ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4" />}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80" align="end">
+                            <Command>
+                                <CommandInput placeholder="Filter sumber..." />
+                                <CommandList>
+                                <CommandEmpty>Tidak ada saran ditemukan.</CommandEmpty>
+                                <CommandGroup heading="Saran Gaji">
+                                    {salarySuggestions.map((suggestion) => (
+                                    <CommandItem
+                                        key={suggestion.source}
+                                        onSelect={() => onSelectSuggestion(index, suggestion.salary)}
+                                        className="flex justify-between"
+                                    >
+                                        <span>{suggestion.source}</span>
+                                        <span className="font-mono">{formatCurrency(suggestion.salary)}</span>
+                                    </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                                </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
