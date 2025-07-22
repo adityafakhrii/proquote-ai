@@ -316,8 +316,10 @@ export function EditStep({
                             <Command>
                                 <CommandInput placeholder="Filter sumber..." />
                                 <CommandList>
-                                <CommandEmpty>Tidak ada saran ditemukan.</CommandEmpty>
-                                <CommandGroup heading="Saran Gaji">
+                                <CommandEmpty>
+                                  {isSuggestingSalary === index ? "Sedang mencari saran..." : "Tidak ada saran ditemukan."}
+                                </CommandEmpty>
+                                {salarySuggestions.length > 0 && <CommandGroup heading="Saran Gaji">
                                     {salarySuggestions.map((suggestion) => (
                                     <CommandItem
                                         key={suggestion.source}
@@ -328,7 +330,7 @@ export function EditStep({
                                         <span className="font-mono">{formatCurrency(suggestion.salary)}</span>
                                     </CommandItem>
                                     ))}
-                                </CommandGroup>
+                                </CommandGroup>}
                                 </CommandList>
                             </Command>
                           </PopoverContent>
