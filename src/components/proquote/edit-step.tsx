@@ -266,13 +266,10 @@ export function EditStep({
                 <div className="grid md:grid-cols-2 gap-4 pt-4">
                   <div className="space-y-2">
                     <Label htmlFor="technical-modal">Modal Teknis (IDR)</Label>
+                     <p className="text-xs text-muted-foreground">Termasuk biaya untuk lisensi software, sewa server, domain, dll.</p>
                     <Input id="technical-modal" type="number" value={costDetails.technicalModal} onChange={(e) => handleCostChange('technicalModal', e.target.value)} placeholder="cth., 5000000" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="development">Biaya Pengembangan Tambahan (IDR)</Label>
-                    <Input id="development" type="number" value={costDetails.development} onChange={(e) => handleCostChange('development', e.target.value)} placeholder="cth., 10000000" />
-                  </div>
-                   <div className="space-y-2 col-span-2">
+                   <div className="space-y-2">
                     <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
                     <div className="flex items-center max-w-xs">
                         <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => handleCostChange('profitMargin', e.target.value)} placeholder="cth., 20" className="rounded-r-none"/>

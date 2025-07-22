@@ -13,7 +13,12 @@ import { Logo } from '@/components/proquote/logo';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
-export type EditableAnalysis = AnalyzeProjectRequirementsOutput;
+export type EditableAnalysis = Omit<AnalyzeProjectRequirementsOutput, 'costDetails'> & {
+  costDetails: {
+    technicalModal: number;
+    profitMargin: number;
+  };
+};
 
 export default function Home() {
   const [step, setStep] = useState(1);
@@ -71,7 +76,16 @@ export default function Home() {
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
         });
-        setAnalysisResult(result);
+        
+        const initialResult: EditableAnalysis = {
+          ...result,
+          costDetails: {
+            technicalModal: result.costDetails.technicalModal,
+            profitMargin: result.costDetails.profitMargin,
+          }
+        };
+
+        setAnalysisResult(initialResult);
         setStep(2);
         setIsLoading(false);
       };

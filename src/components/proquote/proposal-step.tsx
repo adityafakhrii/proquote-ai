@@ -49,7 +49,7 @@ export function ProposalStep({
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-  const subtotalCost = costDetails.technicalModal + manpowerCost + costDetails.development;
+  const subtotalCost = costDetails.technicalModal + manpowerCost;
   const profitAmount = subtotalCost * (costDetails.profitMargin / 100);
   const grandTotal = subtotalCost + profitAmount;
 
@@ -140,10 +140,6 @@ export function ProposalStep({
                             <TableRow>
                                 <TableCell className="text-muted-foreground">Tenaga Kerja (Manpower)</TableCell>
                                 <TableCell className="text-right font-medium">{formatCurrency(manpowerCost)}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell className="text-muted-foreground">Pengembangan Tambahan</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.development)}</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell className="text-muted-foreground">Subtotal Biaya</TableCell>

@@ -32,7 +32,6 @@ const AnalyzeProjectRequirementsOutputSchema = z.object({
     .describe('Estimasi peran, jumlah orang, dan gaji bulanan per peran.'),
   costDetails: z.object({
       technicalModal: z.number().describe('Estimasi biaya untuk modal teknis (tools, software, lisensi, dll).'),
-      development: z.number().describe('Estimasi biaya untuk pengembangan tambahan (infrastruktur, API pihak ketiga, dll).'),
       profitMargin: z.number().describe('Profit margin dalam bentuk persentase untuk proyek (misal: 20 untuk 20%).'),
   }),
   estimatedTimeline: z
@@ -66,7 +65,7 @@ Tugas Anda:
 1.  **Ringkasan Proyek**: Tulis deskripsi singkat dan ringkasan umum dari proyek ini.
 2.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
 3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan, jumlah orang per peran, dan estimasi gaji bulanan (dalam IDR) untuk setiap peran. Gunakan data gaji yang wajar untuk pasar Indonesia (misalnya, merujuk pada data UMR atau situs seperti Glassdoor). Contoh: [{role: "Frontend Developer", count: 2, monthlySalary: 8000000}].
-4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (tools/software) dan 'Biaya Pengembangan Tambahan' (infrastruktur, dll.). Set profit margin default ke 20%. Biaya manpower akan dihitung nanti.
+4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%. Biaya manpower akan dihitung nanti.
 5.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini.
 6.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.
 `,
