@@ -43,6 +43,15 @@ export function EditStep({
   
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+  
+  const formatNumber = (value: number) =>
+    new Intl.NumberFormat('id-ID').format(value);
+
+  const parseFormattedNumber = (value: string): number => {
+    // Remove all non-digit characters except for a potential single decimal comma
+    const cleanedValue = value.replace(/[^\d,]/g, '').replace(',', '.');
+    return Number(cleanedValue);
+  };
 
   const projectDuration = useMemo(() => {
     if (estimatedTimeline.length === 0) return 0;
@@ -58,7 +67,10 @@ export function EditStep({
     const roleToUpdate = { ...newRoles[index] };
     if (field === 'role') {
       roleToUpdate.role = value as string;
-    } else {
+    } else if (field === 'monthlySalary') {
+      roleToUpdate.monthlySalary = parseFormattedNumber(value as string);
+    }
+     else {
       roleToUpdate[field] = Number(value);
     }
     newRoles[index] = roleToUpdate;
@@ -224,11 +236,10 @@ export function EditStep({
                         min={1}
                       />
                        <Input
-                        type="number"
-                        value={role.monthlySalary}
+                        type="text"
+                        value={formatNumber(role.monthlySalary)}
                         onChange={(e) => handleRoleChange(index, 'monthlySalary', e.target.value)}
-                        placeholder="cth., 8000000"
-                        step={500000}
+                        placeholder="cth., 8.000.000"
                       />
                       <Button
                         variant="ghost"
