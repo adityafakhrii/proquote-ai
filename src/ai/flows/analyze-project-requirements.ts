@@ -64,7 +64,7 @@ Dokumen: {{media url=documentDataUri}}
 Tugas Anda:
 1.  **Ringkasan Proyek**: Tulis deskripsi singkat dan ringkasan umum dari proyek ini.
 2.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
-3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan, jumlah orang per peran, dan estimasi gaji bulanan (dalam IDR) untuk setiap peran. Gunakan data gaji yang wajar untuk pasar Indonesia (misalnya, merujuk pada data UMR atau situs seperti Glassdoor). Contoh: [{role: "Frontend Developer", count: 2, monthlySalary: 8000000}].
+3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk gaji bulanan, gunakan **UMR Jakarta terbaru** sebagai nilai default untuk semua peran. Jangan gunakan sumber lain untuk estimasi awal ini. Contoh: [{role: "Frontend Developer", count: 2, monthlySalary: 5067381}].
 4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%. Biaya manpower akan dihitung nanti.
 5.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini.
 6.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.
