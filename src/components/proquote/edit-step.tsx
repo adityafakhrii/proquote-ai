@@ -79,27 +79,26 @@ export function EditStep({
 
   const handleTimelineChange = (
     index: number,
-    field: 'month' | 'phase' | 'activity',
-    value: string | number
+    field: 'phase' | 'activity',
+    value: string
   ) => {
     const newTimeline = [...estimatedTimeline];
     const itemToUpdate = { ...newTimeline[index] };
-     if (field === 'month') {
-      itemToUpdate.month = Number(value);
-    } else if (field === 'phase') {
-        itemToUpdate.phase = value as string;
+    if (field === 'phase') {
+        itemToUpdate.phase = value;
     } else {
-      itemToUpdate.activity = value as string;
+      itemToUpdate.activity = value;
     }
     newTimeline[index] = itemToUpdate;
     onUpdate({ estimatedTimeline: newTimeline });
   };
 
   const handleAddTimelineItem = () => {
+    const newMonth = estimatedTimeline.length > 0 ? Math.max(...estimatedTimeline.map(t => t.month)) + 1 : 1;
     onUpdate({
       estimatedTimeline: [
         ...estimatedTimeline,
-        { month: estimatedTimeline.length + 1, phase: '', activity: '' },
+        { month: newMonth, phase: '', activity: '' },
       ],
     });
   };
@@ -289,8 +288,9 @@ export function EditStep({
                       <Input
                         type="number"
                         value={item.month}
-                        onChange={(e) => handleTimelineChange(index, 'month', e.target.value)}
                         className="w-20 text-center"
+                        readOnly
+                        disabled
                       />
                       <Input
                         value={item.phase}

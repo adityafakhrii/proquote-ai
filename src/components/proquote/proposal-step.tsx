@@ -41,6 +41,9 @@ export function ProposalStep({
     requiredFeatures
   } = analysisResult;
 
+  const projectDuration = estimatedTimeline.length > 0 
+    ? Math.max(...estimatedTimeline.map(t => t.month)) 
+    : 0;
   const today = format(new Date(), 'd MMMM yyyy', { locale: id });
   
   const formatCurrency = (value: number) => 
@@ -71,10 +74,6 @@ export function ProposalStep({
                <span className="text-xl font-bold font-headline">ProQuoteAI</span>
             </div>
           </div>
-          <Separator className="my-6" />
-          <h2 className="text-2xl font-headline font-semibold">
-            Tinjauan Proyek untuk: {fileName.replace('.pdf', '')}
-          </h2>
         </CardHeader>
         <CardContent className="px-8 space-y-8">
           {/* Project Summary */}
@@ -163,11 +162,35 @@ export function ProposalStep({
                         {formatCurrency(grandTotal)}
                     </p>
                 </div>
-                 <p className="text-sm text-muted-foreground text-center">
-                    Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
-                </p>
             </div>
-            <div className="mt-6 bg-secondary/50 p-4 rounded-lg">
+            <div className="mt-8 space-y-4">
+                <h4 className="font-semibold text-lg">Rincian Biaya Tenaga Kerja (Manpower)</h4>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Peran</TableHead>
+                        <TableHead className="text-center">Jumlah</TableHead>
+                        <TableHead className="text-right">Gaji/Bulan</TableHead>
+                        <TableHead className="text-center">Durasi</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {estimatedRoles.map((role, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{role.role}</TableCell>
+                          <TableCell className="text-center">{role.count}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(role.monthlySalary)}</TableCell>
+                          <TableCell className="text-center">{projectDuration} bulan</TableCell>
+                          <TableCell className="text-right font-semibold">{formatCurrency(role.count * role.monthlySalary * projectDuration)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+            </div>
+            <div className="mt-8 bg-secondary/50 p-4 rounded-lg">
                 <h4 className="font-semibold flex items-center"><Landmark className="mr-2 h-5 w-5"/>Skema Pembayaran Bertahap</h4>
                 <ul className="list-decimal list-inside mt-2 text-sm text-muted-foreground pl-4">
                     <li><span className="font-semibold text-foreground">DP (50%):</span> {formatCurrency(grandTotal * 0.5)} di awal proyek.</li>
@@ -175,6 +198,9 @@ export function ProposalStep({
                     <li><span className="font-semibold text-foreground">Pelunasan (20%):</span> {formatCurrency(grandTotal * 0.2)} setelah serah terima proyek.</li>
                 </ul>
             </div>
+             <p className="text-sm text-muted-foreground text-center mt-6">
+                Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
+            </p>
           </section>
 
           <Separator />
