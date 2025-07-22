@@ -1,7 +1,6 @@
 'use client';
 
 import type { EditableAnalysis } from '@/app/page';
-import { GanttChart } from './gantt-chart';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,7 +11,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Printer, Users, DollarSign, Cpu, Calendar } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowLeft, Printer, Users, Wallet, Cpu, GanttChartSquare, Percent, Landmark } from 'lucide-react';
 import { format } from 'date-fns';
 import { Logo } from './logo';
 import { id } from 'date-fns/locale';
@@ -32,12 +32,18 @@ export function ProposalStep({
 }: ProposalStepProps) {
   const {
     estimatedRoles,
-    estimatedLaborCosts,
+    costDetails,
     estimatedTimeline,
     suggestedTechnologies,
   } = analysisResult;
 
   const today = format(new Date(), 'd MMMM yyyy', { locale: id });
+  
+  const formatCurrency = (value: number) => 
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+
+  const totalCost = costDetails.technicalModal + costDetails.manpower + costDetails.development;
+  const grandTotal = totalCost + costDetails.profitMargin;
 
   return (
     <div className="space-y-4">
@@ -73,11 +79,11 @@ export function ProposalStep({
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
               <Users className="mr-3 h-6 w-6 text-accent" />
-              Peran yang Dibutuhkan
+              Estimasi Tim / Manpower
             </h3>
-            <ul className="list-disc list-inside space-y-1 pl-2">
+             <ul className="list-disc list-inside space-y-1 pl-2">
               {estimatedRoles.map((role, index) => (
-                <li key={index}>{role}</li>
+                <li key={index}>{role.count}x {role.role}</li>
               ))}
             </ul>
           </section>
@@ -87,15 +93,45 @@ export function ProposalStep({
           {/* Costs */}
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
-              <DollarSign className="mr-3 h-6 w-6 text-accent" />
-              Estimasi Biaya Tenaga Kerja
+              <Wallet className="mr-3 h-6 w-6 text-accent" />
+              Estimasi Biaya Proyek
             </h3>
-            <p className="text-4xl font-bold font-headline text-primary">
-              {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(estimatedLaborCosts)}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
-            </p>
+            <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                <div>
+                    <h4 className="font-semibold text-lg">Rincian Komponen Biaya</h4>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
+                        <li>Modal Teknis: <span className="font-medium text-foreground">{formatCurrency(costDetails.technicalModal)}</span></li>
+                        <li>Manpower: <span className="font-medium text-foreground">{formatCurrency(costDetails.manpower)}</span></li>
+                        <li>Pengembangan: <span className="font-medium text-foreground">{formatCurrency(costDetails.development)}</span></li>
+                    </ul>
+                    <Separator className="my-2"/>
+                     <div className="flex justify-between items-center font-semibold">
+                        <span>Subtotal Biaya</span>
+                        <span>{formatCurrency(totalCost)}</span>
+                    </div>
+                     <div className="flex justify-between items-center text-muted-foreground mt-1">
+                        <span>Profit/Margin</span>
+                        <span>{formatCurrency(costDetails.profitMargin)}</span>
+                    </div>
+                </div>
+                 <div>
+                    <h4 className="font-semibold text-lg">Total Biaya Proyek</h4>
+                    <p className="text-4xl font-bold font-headline text-primary mt-2">
+                        {formatCurrency(grandTotal)}
+                    </p>
+                     <p className="text-sm text-muted-foreground mt-2">
+                        Ini adalah perkiraan dan dapat berubah berdasarkan ruang lingkup akhir.
+                    </p>
+                </div>
+            </div>
+            <div className="mt-6 bg-secondary/50 p-4 rounded-lg">
+                <h4 className="font-semibold flex items-center"><Landmark className="mr-2 h-5 w-5"/>Skema Pembayaran Bertahap</h4>
+                <ul className="list-decimal list-inside mt-2 text-sm text-muted-foreground pl-4">
+                    <li><span className="font-semibold text-foreground">DP (50%):</span> {formatCurrency(grandTotal * 0.5)} di awal proyek.</li>
+                    <li><span className="font-semibold text-foreground">Progress (30%):</span> {formatCurrency(grandTotal * 0.3)} setelah penyelesaian tahap pengembangan.</li>
+                    <li><span className="font-semibold text-foreground">Pelunasan (20%):</span> {formatCurrency(grandTotal * 0.2)} setelah serah terima proyek.</li>
+                </ul>
+            </div>
           </section>
 
           <Separator />
@@ -103,12 +139,27 @@ export function ProposalStep({
           {/* Timeline */}
           <section>
             <h3 className="flex items-center text-xl font-headline font-semibold mb-4">
-              <Calendar className="mr-3 h-6 w-6 text-accent" />
+              <GanttChartSquare className="mr-3 h-6 w-6 text-accent" />
               Estimasi Linimasa Proyek
             </h3>
-            <div className="w-full">
-                <GanttChart timeline={estimatedTimeline} />
-            </div>
+             <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Bulan ke-</TableHead>
+                  <TableHead>Fase</TableHead>
+                  <TableHead>Aktivitas Utama</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {estimatedTimeline.sort((a,b) => a.month - b.month).map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{item.month}</TableCell>
+                    <TableCell>{item.phase}</TableCell>
+                    <TableCell>{item.activity}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </section>
 
           <Separator />

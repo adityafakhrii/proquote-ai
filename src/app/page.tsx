@@ -105,8 +105,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="p-4 border-b bg-card">
+    <div className="flex flex-col min-h-screen bg-secondary/50">
+      <header className="p-4 border-b bg-card sticky top-0 z-20">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo className="h-8 w-8 text-primary" />

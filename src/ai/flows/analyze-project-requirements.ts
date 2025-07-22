@@ -22,10 +22,21 @@ export type AnalyzeProjectRequirementsInput = z.infer<typeof AnalyzeProjectRequi
 
 const AnalyzeProjectRequirementsOutputSchema = z.object({
   estimatedRoles: z
-    .array(z.string())
-    .describe('Estimated roles required for the project.'),
-  estimatedLaborCosts: z.number().describe('Estimated labor costs for the project.'),
-  estimatedTimeline: z.string().describe('Estimated timeline for the project as a Gantt chart.'),
+    .array(z.object({ role: z.string(), count: z.number() }))
+    .describe('Estimated roles and number of people for the project.'),
+  costDetails: z.object({
+      technicalModal: z.number().describe('Estimated costs for technical capital/tools.'),
+      manpower: z.number().describe('Estimated costs for manpower.'),
+      development: z.number().describe('Estimated costs for development.'),
+      profitMargin: z.number().describe('Profit margin for the project.'),
+  }),
+  estimatedTimeline: z
+    .array(z.object({
+        month: z.number(),
+        phase: z.string(),
+        activity: z.string(),
+    }))
+    .describe('Estimated timeline for the project, broken down by month, phase, and main activity.'),
   suggestedTechnologies: z
     .array(z.string())
     .describe('Suggested technologies or frameworks to use for the project.'),
@@ -42,7 +53,14 @@ const prompt = ai.definePrompt({
   name: 'analyzeProjectRequirementsPrompt',
   input: {schema: AnalyzeProjectRequirementsInputSchema},
   output: {schema: AnalyzeProjectRequirementsOutputSchema},
-  prompt: `You are an expert project manager. Analyze the following project requirements document and provide estimates for required roles, labor costs, timeline and technology suggestions. Output the roles as a simple list, the labor costs as a single number, the timeline as a Gantt chart, and the technologies as a simple list.\n\nDocument: {{media url=documentDataUri}}\n\nRoles: \nLabor Costs: \nTimeline: \nTechnologies: `,
+  prompt: `Anda adalah seorang manajer proyek ahli. Analisis dokumen persyaratan proyek berikut dan berikan estimasi untuk:
+1.  **Peran Tim & Jumlah Orang**: Buat daftar peran yang dibutuhkan dan jumlah orang untuk setiap peran. Contoh: [{role: "Project Manager", count: 1}, {role: "Developer", count: 2}].
+2.  **Rincian Biaya (IDR)**: Rincikan biaya menjadi modal teknis (untuk tools/software), tenaga kerja (manpower), dan pengembangan (infrastruktur/dll.). Tambahkan juga margin keuntungan yang wajar.
+3.  **Linimasa Proyek**: Buat tabel linimasa bulanan. Setiap baris harus berisi bulan (sebagai angka), fase (misalnya, "Perencanaan"), dan aktivitas utama. Contoh: [{month: 1, phase: "Discovery", activity: "Analisis Kebutuhan"}, {month: 2, phase: "Development", activity: "Pengembangan Fitur A"}].
+4.  **Saran Teknologi**: Buat daftar teknologi atau kerangka kerja yang disarankan.
+
+Dokumen: {{media url=documentDataUri}}
+`,
 });
 
 const analyzeProjectRequirementsFlow = ai.defineFlow(
