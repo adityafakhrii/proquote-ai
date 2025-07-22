@@ -36,15 +36,17 @@ const prompt = ai.definePrompt({
   name: 'getSalarySuggestionPrompt',
   input: {schema: GetSalarySuggestionInputSchema},
   output: {schema: GetSalarySuggestionOutputSchema},
-  prompt: `Anda adalah seorang konsultan HR ahli di Indonesia. Berikan estimasi gaji bulanan (dalam IDR) untuk peran: {{{role}}}.
+  prompt: `Anda adalah seorang konsultan HR ahli di Indonesia. Berikan estimasi gaji bulanan (dalam IDR) KHUSUS untuk peran: {{{role}}}.
+
+Sangat penting: Setiap saran gaji harus disesuaikan secara spesifik dengan peran '{{{role}}}'. Jangan gunakan angka yang sama untuk peran yang berbeda. Misalnya, gaji untuk "Backend Developer" harus berbeda dengan "UI/UX Designer".
 
 Gunakan data dan pengetahuan Anda dari sumber-sumber berikut untuk memberikan 4 saran gaji:
-1.  **UMR Jakarta**: Gunakan UMR terbaru sebagai dasar untuk peran entry-level/junior.
-2.  **Glassdoor**: Berikan rata-rata gaji untuk peran ini berdasarkan data agregat dari Glassdoor di Indonesia.
-3.  **Laporan Gaji PersolKelly**: Berikan angka yang kompetitif untuk peran ini berdasarkan laporan tren gaji dari PersolKelly.
-4.  **Laporan Gaji McKinsey**: Berikan angka premium yang mungkin ditawarkan oleh perusahaan konsultan top atau perusahaan multinasional besar, merujuk pada standar gaji dari laporan atau praktik di McKinsey & Company.
+1.  **UMR Jakarta**: Gunakan UMR terbaru sebagai dasar untuk peran entry-level/junior. Sesuaikan jika peran '{{{role}}}' jelas bukan level junior.
+2.  **Glassdoor**: Berikan rata-rata gaji untuk peran '{{{role}}}' ini berdasarkan data agregat dari Glassdoor di Indonesia.
+3.  **Laporan Gaji PersolKelly**: Berikan angka yang kompetitif untuk peran '{{{role}}}' ini berdasarkan laporan tren gaji dari PersolKelly.
+4.  **Laporan Gaji McKinsey**: Berikan angka premium yang mungkin ditawarkan oleh perusahaan konsultan top atau perusahaan multinasional besar untuk peran '{{{role}}}', merujuk pada standar gaji dari laporan atau praktik di McKinsey & Company.
 
-Pastikan setiap saran memiliki sumber yang jelas dan angka yang realistis. Kembalikan hasilnya dalam format JSON.
+Pastikan setiap saran memiliki sumber yang jelas dan angka yang realistis untuk peran '{{{role}}}'. Kembalikan hasilnya dalam format JSON.
 `,
 });
 
