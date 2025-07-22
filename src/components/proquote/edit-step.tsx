@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
@@ -59,8 +60,9 @@ export function EditStep({
     new Intl.NumberFormat('id-ID').format(value);
 
   const parseFormattedNumber = (value: string): number => {
-    const cleanedValue = value.replace(/[^\d,]/g, '').replace(/,/g, '.').replace(/\.(?=.*\.)/g, '');
-    return Number(cleanedValue.replace(/\./g, ''));
+    // This regex removes all characters except digits
+    const cleanedValue = value.replace(/[^\d]/g, '');
+    return Number(cleanedValue);
   };
 
   const projectDuration = useMemo(() => {
@@ -243,7 +245,13 @@ export function EditStep({
 
             <TabsContent value="roles">
               <div className="space-y-4">
-                <div className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2 font-medium">
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    Gaji default adalah estimasi AI berdasarkan standar industri di Indonesia. Klik tombol ✨ untuk melihat perbandingan dari sumber lain.
+                  </AlertDescription>
+                </Alert>
+                <div className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2 font-medium pt-2">
                   <Label>Peran</Label>
                   <Label className="text-center">Jumlah</Label>
                   <Label>Gaji/Bulan (IDR)</Label>
@@ -269,6 +277,10 @@ export function EditStep({
                           type="text"
                           value={formatNumber(role.monthlySalary)}
                           onChange={(e) => handleRoleChange(index, 'monthlySalary', e.target.value)}
+                          onBlur={(e) => {
+                            const numericValue = parseFormattedNumber(e.target.value);
+                            e.target.value = formatNumber(numericValue);
+                          }}
                           placeholder="cth., 8.000.000"
                         />
                         <Popover onOpenChange={() => setSalarySuggestions([])}>

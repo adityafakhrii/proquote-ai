@@ -57,15 +57,15 @@ const prompt = ai.definePrompt({
   name: 'analyzeProjectRequirementsPrompt',
   input: {schema: AnalyzeProjectRequirementsInputSchema},
   output: {schema: AnalyzeProjectRequirementsOutputSchema},
-  prompt: `Anda adalah seorang manajer proyek dan analis bisnis ahli. Analisis dokumen persyaratan proyek berikut dan berikan data dalam format JSON yang terstruktur.
+  prompt: `Anda adalah seorang manajer proyek dan analis bisnis ahli di Indonesia. Analisis dokumen persyaratan proyek berikut dan berikan data dalam format JSON yang terstruktur.
 
 Dokumen: {{media url=documentDataUri}}
 
 Tugas Anda:
 1.  **Ringkasan Proyek**: Tulis deskripsi singkat dan ringkasan umum dari proyek ini.
 2.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
-3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk gaji bulanan, gunakan **UMR Jakarta terbaru** sebagai nilai default untuk semua peran. Jangan gunakan sumber lain untuk estimasi awal ini. Contoh: [{role: "Frontend Developer", count: 2, monthlySalary: 5067381}].
-4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%. Biaya manpower akan dihitung nanti.
+3.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk **gaji bulanan**, berikan estimasi yang wajar dan realistis untuk setiap peran dalam IDR, berdasarkan pengetahuan Anda tentang standar industri dan pasar kerja di Indonesia (mempertimbangkan data dari UMR, Glassdoor, laporan gaji, dll.). **Setiap peran harus memiliki estimasi gaji yang berbeda sesuai dengan tanggung jawabnya.** Jangan samakan semua gaji.
+4.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%.
 5.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini.
 6.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.
 `,
