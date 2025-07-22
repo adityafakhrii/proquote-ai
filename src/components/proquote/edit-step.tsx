@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { suggestTechnologies } from '@/ai/flows/suggest-technologies';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
@@ -52,6 +54,8 @@ export function EditStep({
 
   const [salarySuggestions, setSalarySuggestions] = useState<SalarySuggestion[]>([]);
   const [isSuggestingSalary, setIsSuggestingSalary] = useState<number | null>(null);
+  const [isSuggestingTech, setIsSuggestingTech] = useState(false);
+  const { toast } = useToast();
   
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
@@ -99,7 +103,8 @@ export function EditStep({
   };
 
   const handleCostChange = (field: keyof typeof costDetails, value: string) => {
-    onUpdate({ costDetails: { ...costDetails, [field]: Number(value) } });
+    const parsedValue = parseFormattedNumber(value);
+    onUpdate({ costDetails: { ...costDetails, [field]: Number(parsedValue) } });
   };
 
   const handleTimelineChange = (
@@ -186,6 +191,24 @@ export function EditStep({
     handleRoleChange(index, 'monthlySalary', salary);
     setSalarySuggestions([]);
   };
+
+  const onRegenerateTech = async () => {
+    setIsSuggestingTech(true);
+    try {
+      const result = await suggestTechnologies({ projectRequirements: projectSummary });
+      onUpdate({ suggestedTechnologies: result.suggestedTechnologies });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Gagal Menghasilkan Saran',
+        description: 'Terjadi kesalahan saat menyarankan teknologi baru.',
+      });
+      console.error("Failed to suggest technologies", error);
+    } finally {
+      setIsSuggestingTech(false);
+    }
+  };
+
 
   return (
     <Card className="w-full animate-in fade-in-50">
@@ -337,7 +360,17 @@ export function EditStep({
                   <div className="space-y-2">
                     <Label htmlFor="technical-modal">Modal Teknis (IDR)</Label>
                      <p className="text-xs text-muted-foreground">Termasuk biaya untuk lisensi software, sewa server, domain, dll.</p>
-                    <Input id="technical-modal" type="number" value={costDetails.technicalModal} onChange={(e) => handleCostChange('technicalModal', e.target.value)} placeholder="cth., 5000000" />
+                      <Input
+                        id="technical-modal"
+                        type="text"
+                        value={formatNumber(costDetails.technicalModal)}
+                        onChange={(e) => handleCostChange('technicalModal', e.target.value)}
+                        onBlur={(e) => {
+                          const numericValue = parseFormattedNumber(e.target.value);
+                          e.target.value = formatNumber(numericValue);
+                        }}
+                        placeholder="cth., 5.000.000"
+                      />
                   </div>
                    <div className="space-y-2">
                     <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
@@ -401,7 +434,13 @@ export function EditStep({
 
             <TabsContent value="tech">
               <div className="space-y-4">
-                <Label>Tech Stack yang Digunakan</Label>
+                <div className="flex justify-between items-center">
+                    <Label>Tech Stack yang Digunakan</Label>
+                    <Button variant="outline" size="sm" onClick={onRegenerateTech} disabled={isSuggestingTech}>
+                        {isSuggestingTech ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Saran Ulang
+                    </Button>
+                </div>
                 <div className="space-y-2">
                   {suggestedTechnologies.map((tech, index) => (
                     <div key={index} className="flex items-center gap-2">
