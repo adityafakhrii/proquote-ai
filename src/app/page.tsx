@@ -13,7 +13,7 @@ import { Logo } from '@/components/proquote/logo';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
-export type EditableAnalysis = Omit<AnalyzeProjectRequirementsOutput, 'costDetails'> & {
+export type EditableAnalysis = Required<Omit<AnalyzeProjectRequirementsOutput, 'isProjectRequirementDocument' | 'costDetails'>> & {
   costDetails: {
     technicalModal: number;
     profitMargin: number;
@@ -76,9 +76,23 @@ export default function Home() {
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
         });
+
+        if (!result.isProjectRequirementDocument || !result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
+          toast({
+            variant: 'destructive',
+            title: 'Dokumen Tidak Sesuai',
+            description: 'Dokumen yang Anda unggah sepertinya bukan dokumen persyaratan proyek. Silakan coba lagi dengan file yang benar.',
+          });
+          setIsLoading(false);
+          return;
+        }
         
         const initialResult: EditableAnalysis = {
-          ...result,
+          projectSummary: result.projectSummary,
+          requiredFeatures: result.requiredFeatures,
+          estimatedRoles: result.estimatedRoles,
+          estimatedTimeline: result.estimatedTimeline,
+          suggestedTechnologies: result.suggestedTechnologies,
           costDetails: {
             technicalModal: result.costDetails.technicalModal,
             profitMargin: result.costDetails.profitMargin,
