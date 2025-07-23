@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -22,6 +22,7 @@ import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { suggestTechnologies } from '@/ai/flows/suggest-technologies';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
@@ -35,6 +36,20 @@ type SalarySuggestion = {
     source: string;
     salary: number;
 };
+
+const commonRoles = [
+    { value: 'Project Manager', label: 'Project Manager' },
+    { value: 'Frontend Developer', label: 'Frontend Developer' },
+    { value: 'Backend Developer', label: 'Backend Developer' },
+    { value: 'Full Stack Developer', label: 'Full Stack Developer' },
+    { value: 'UI/UX Designer', label: 'UI/UX Designer' },
+    { value: 'QA Engineer', label: 'QA Engineer' },
+    { value: 'DevOps Engineer', label: 'DevOps Engineer' },
+    { value: 'Business Analyst', label: 'Business Analyst' },
+    { value: 'Data Scientist', label: 'Data Scientist' },
+    { value: 'Mobile Developer (iOS)', label: 'Mobile Developer (iOS)' },
+    { value: 'Mobile Developer (Android)', label: 'Mobile Developer (Android)' },
+  ];
 
 export function EditStep({
   analysisResult,
@@ -55,6 +70,7 @@ export function EditStep({
   const [salarySuggestions, setSalarySuggestions] = useState<SalarySuggestion[]>([]);
   const [isSuggestingSalary, setIsSuggestingSalary] = useState<number | null>(null);
   const [isSuggestingTech, setIsSuggestingTech] = useState(false);
+  const [openRoleCombobox, setOpenRoleCombobox] = useState<number | null>(null);
   const { toast } = useToast();
   
   const formatCurrency = (value: number) => 
@@ -283,11 +299,56 @@ export function EditStep({
                 <div className="space-y-2">
                   {estimatedRoles.map((role, index) => (
                     <div key={index} className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2">
-                      <Input
-                        value={role.role}
-                        onChange={(e) => handleRoleChange(index, 'role', e.target.value)}
-                        placeholder="cth., Manajer Proyek"
-                      />
+                      <Popover open={openRoleCombobox === index} onOpenChange={(isOpen) => setOpenRoleCombobox(isOpen ? index : null)}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openRoleCombobox === index}
+                            className="w-full justify-between font-normal"
+                          >
+                            {role.role
+                              ? commonRoles.find(
+                                  (r) => r.value.toLowerCase() === role.role.toLowerCase()
+                                )?.label || role.role
+                              : "Pilih atau ketik peran..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                           <Command shouldFilter={false}>
+                            <CommandInput 
+                              placeholder="Cari atau buat peran baru..."
+                              value={role.role}
+                              onValueChange={(value) => handleRoleChange(index, 'role', value)}
+                            />
+                            <CommandList>
+                              <CommandEmpty>Tidak ada peran ditemukan.</CommandEmpty>
+                              <CommandGroup>
+                                {commonRoles.filter(r => r.label.toLowerCase().includes(role.role.toLowerCase())).map((r) => (
+                                  <CommandItem
+                                    key={r.value}
+                                    value={r.value}
+                                    onSelect={(currentValue) => {
+                                      handleRoleChange(index, 'role', currentValue === role.role ? '' : currentValue);
+                                      setOpenRoleCombobox(null);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        role.role.toLowerCase() === r.value.toLowerCase() ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {r.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+
                        <Input
                         type="number"
                         value={role.count}
