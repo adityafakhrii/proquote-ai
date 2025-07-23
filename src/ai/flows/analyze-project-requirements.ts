@@ -66,9 +66,9 @@ const prompt = ai.definePrompt({
 Dokumen: {{media url=documentDataUri}}
 
 TUGAS UTAMA:
-1.  **Validasi Dokumen**: Pertama, tentukan apakah dokumen yang diberikan adalah dokumen **Persyaratan Proyek**, **Proposal Proyek**, atau sejenisnya. 
-    -   Jika YA, set 'isProjectRequirementDocument' ke 'true' dan lanjutkan ke tugas berikutnya.
-    -   Jika TIDAK (misalnya ini adalah menu restoran, artikel, atau dokumen acak lainnya), set 'isProjectRequirementDocument' ke 'false' dan jangan isi field lainnya.
+1.  **Validasi Dokumen (SANGAT KETAT)**: Pertama, tentukan apakah dokumen yang diberikan adalah dokumen **Persyaratan Proyek (Project Requirement Document)**, **Proposal Proyek**, atau dokumen sejenis yang secara eksplisit menjabarkan kebutuhan untuk pembuatan sebuah produk atau layanan perangkat lunak.
+    -   Jika YA, setel 'isProjectRequirementDocument' ke 'true' dan lanjutkan ke tugas berikutnya.
+    -   Jika TIDAK (misalnya ini adalah **sertifikat**, **CV**, **ijazah**, menu restoran, artikel, tagihan, atau dokumen acak lainnya yang tidak berhubungan dengan ruang lingkup proyek), setel 'isProjectRequirementDocument' ke 'false' dan **JANGAN ISI FIELD LAINNYA SAMA SEKALI**. Ini sangat penting.
 
 2.  **Ringkasan Proyek**: Jika dokumen valid, tulis deskripsi singkat dan ringkasan umum dari proyek ini.
 3.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
