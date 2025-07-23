@@ -69,7 +69,7 @@ export function ProposalStep({
                 Disiapkan pada: {today}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2 text-primary no-print">
+            <div className="flex items-center gap-2 text-primary">
                <Logo className="h-10 w-10" />
                <span className="text-xl font-bold font-headline">ProQuoteAI</span>
             </div>
