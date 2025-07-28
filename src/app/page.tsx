@@ -88,28 +88,25 @@ export default function Home() {
     }
   };
 
-  const handleGoToClientProfile = () => {
+  const handleAnalyze = async (profile?: ClientProfile) => {
     if (!file) {
       toast({
-          variant: 'destructive',
-          title: 'Tidak Ada File yang Dipilih',
-          description: 'Silakan pilih PDF persyaratan proyek untuk melanjutkan.',
+        variant: 'destructive',
+        title: 'Tidak Ada File yang Dipilih',
+        description: 'Silakan pilih PDF persyaratan proyek untuk melanjutkan.',
       });
       return;
     }
-    setStep(2);
-  };
-
-  const handleAnalyze = async () => {
-    if (!file) return;
 
     setIsLoading(true);
+
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const dataUri = reader.result as string;
         
+        const profileToAnalyze = profile || clientProfile;
         const profileMap = {
             'startup': 'Startup kecil',
             'multinational': 'Perusahaan multinasional',
@@ -119,14 +116,32 @@ export default function Home() {
 
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
-          clientProfile: profileMap[clientProfile.profileType],
+          clientProfile: profileMap[profileToAnalyze.profileType],
         });
 
-        if (!result.isProjectRequirementDocument || !result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
+        if (!result.isProjectRequirementDocument) {
           toast({
             variant: 'destructive',
             title: 'Dokumen Tidak Sesuai',
-            description: 'Dokumen yang Anda unggah sepertinya bukan dokumen persyaratan proyek. Silakan coba lagi dengan file yang benar.',
+            description: 'Dokumen yang Anda unggah bukan dokumen persyaratan proyek. Silakan coba lagi.',
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // If it's the first analysis (from upload step), just go to client profile step
+        if (step === 1) {
+          setStep(2);
+          setIsLoading(false);
+          return;
+        }
+
+        // If it's the second analysis (from client profile step), populate the data
+        if (!result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
+          toast({
+            variant: 'destructive',
+            title: 'Analisis Gagal',
+            description: 'AI tidak dapat mengekstrak detail dari dokumen. Pastikan dokumen Anda adalah dokumen persyaratan proyek yang jelas.',
           });
           setIsLoading(false);
           return;
@@ -162,6 +177,7 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
 
   const handleUpdate = (updates: Partial<EditableAnalysis>) => {
     if (analysisResult) {
@@ -223,17 +239,20 @@ export default function Home() {
           {step === 1 && (
             <UploadStep
               onFileChange={handleFileChange}
-              onNext={handleGoToClientProfile}
+              onNext={() => handleAnalyze()}
               fileName={fileName}
+              isLoading={isLoading}
             />
           )}
           {step === 2 && (
              <ClientProfileStep 
                 clientProfile={clientProfile}
-                setClientProfile={setClientProfile}
-                onAnalyze={handleAnalyze}
+                setClientProfile={(profile) => {
+                    setClientProfile(profile);
+                    // Re-run analysis with new profile info when it changes
+                    handleAnalyze(profile);
+                }}
                 onBack={handleBack}
-                isLoading={isLoading}
              />
           )}
           {step === 3 && analysisResult && (

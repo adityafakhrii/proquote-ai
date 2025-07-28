@@ -12,18 +12,20 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, FileText, ArrowRight } from 'lucide-react';
+import { UploadCloud, FileText, ArrowRight, Loader2 } from 'lucide-react';
 
 interface UploadStepProps {
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
   fileName: string;
+  isLoading: boolean;
 }
 
 export function UploadStep({
   onFileChange,
   onNext,
   fileName,
+  isLoading
 }: UploadStepProps) {
   return (
     <Card className="w-full animate-in fade-in-50">
@@ -52,6 +54,7 @@ export function UploadStep({
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={onFileChange}
                 accept="application/pdf"
+                disabled={isLoading}
             />
         </div>
         {fileName && (
@@ -65,9 +68,18 @@ export function UploadStep({
         <Button
           className="w-full text-lg py-6"
           onClick={onNext}
-          disabled={!fileName}
+          disabled={!fileName || isLoading}
         >
-          Lanjutkan <ArrowRight className="ml-2 h-5 w-5" />
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Memvalidasi Dokumen...
+            </>
+          ) : (
+            <>
+              Lanjutkan <ArrowRight className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>
