@@ -1,6 +1,6 @@
 'use client';
 
-import type { EditableAnalysis } from '@/app/page';
+import type { EditableAnalysis, ProposalDetails } from '@/app/page';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check, Banknote, Signature } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -23,10 +23,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { suggestTechnologies } from '@/ai/flows/suggest-technologies';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface EditStepProps {
   analysisResult: EditableAnalysis;
+  proposalDetails: ProposalDetails;
   onUpdate: (updates: Partial<EditableAnalysis>) => void;
+  onUpdateProposalDetails: (updates: Partial<ProposalDetails>) => void;
   onNext: () => void;
   onBack: () => void;
   manpowerCost: number;
@@ -53,7 +56,9 @@ const commonRoles = [
 
 export function EditStep({
   analysisResult,
+  proposalDetails,
   onUpdate,
+  onUpdateProposalDetails,
   onNext,
   onBack,
   manpowerCost,
@@ -150,9 +155,8 @@ export function EditStep({
 
   const handleRemoveTimelineItem = (index: number) => {
     const newTimeline = estimatedTimeline.filter((_, i) => i !== index);
-    const reindexedTimeline = newTimeline.map((item, idx) => ({...item, month: idx + 1}));
     onUpdate({
-      estimatedTimeline: reindexedTimeline,
+      estimatedTimeline: newTimeline,
     });
   };
 
@@ -231,7 +235,7 @@ export function EditStep({
     <Card className="w-full animate-in fade-in-50">
       <CardHeader>
         <CardTitle className="font-headline text-3xl">
-          Tinjau & Sesuaikan Estimasi
+          Tinjau &amp; Sesuaikan Estimasi
         </CardTitle>
         <CardDescription>
           Sempurnakan perkiraan yang dihasilkan AI agar sesuai dengan keahlian dan kekhususan proyek Anda.
@@ -239,12 +243,13 @@ export function EditStep({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="project" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
             <TabsTrigger value="project"><Info className="mr-2"/>Proyek</TabsTrigger>
             <TabsTrigger value="roles"><Users className="mr-2"/>Tim</TabsTrigger>
             <TabsTrigger value="costs"><Wallet className="mr-2"/>Biaya</TabsTrigger>
             <TabsTrigger value="timeline"><GanttChartSquare className="mr-2"/>Linimasa</TabsTrigger>
             <TabsTrigger value="tech"><Cpu className="mr-2"/>Teknologi</TabsTrigger>
+            <TabsTrigger value="payment"><Banknote className="mr-2"/>Info Lain</TabsTrigger>
           </TabsList>
           
           <div className="pt-6">
@@ -439,7 +444,7 @@ export function EditStep({
                    <div className="space-y-2">
                     <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
                     <div className="flex items-center max-w-xs">
-                        <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => handleCostChange('profitMargin', e.target.value)} placeholder="cth., 20" className="rounded-r-none"/>
+                        <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => onUpdateProposalDetails({ ...proposalDetails, costDetails: { ...costDetails, profitMargin: Number(e.target.value) } })} placeholder="cth., 20" className="rounded-r-none"/>
                         <span className="flex items-center justify-center bg-muted text-muted-foreground h-10 w-10 rounded-r-md border border-l-0 border-input">
                             <Percent className="h-4 w-4"/>
                         </span>
@@ -465,8 +470,6 @@ export function EditStep({
                         value={item.month}
                         onChange={(e) => handleTimelineChange(index, 'month', e.target.value)}
                         className="w-20 text-center"
-                        readOnly
-                        disabled
                       />
                       <Input
                         value={item.phase}
@@ -537,6 +540,78 @@ export function EditStep({
                 </Button>
               </div>
             </TabsContent>
+
+            <TabsContent value="payment">
+              <div className="space-y-6">
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Detail Proposal</h3>
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="subject">Subjek Proposal</Label>
+                            <Input id="subject" value={proposalDetails.subject} onChange={(e) => onUpdateProposalDetails({ subject: e.target.value })}/>
+                        </div>
+                        <div className="space-y-2">
+                           <Label htmlFor="from">Nama Pengirim/Perusahaan Anda</Label>
+                           <Input id="from" value={proposalDetails.from} onChange={(e) => onUpdateProposalDetails({ from: e.target.value })}/>
+                        </div>
+                     </div>
+                 </div>
+
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Informasi Pembayaran</h3>
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="payment-bank">Nama Bank</Label>
+                            <Input id="payment-bank" value={proposalDetails.paymentBank} onChange={(e) => onUpdateProposalDetails({ paymentBank: e.target.value })} placeholder="cth., Bank Central Asia (BCA)"/>
+                        </div>
+                        <div className="space-y-2">
+                           <Label htmlFor="payment-account-name">Atas Nama</Label>
+                           <Input id="payment-account-name" value={proposalDetails.paymentAccountName} onChange={(e) => onUpdateProposalDetails({ paymentAccountName: e.target.value })} placeholder="cth., PT Teknologi Bersama"/>
+                        </div>
+                         <div className="space-y-2 md:col-span-2">
+                           <Label htmlFor="payment-account-number">Nomor Rekening</Label>
+                           <Input id="payment-account-number" value={proposalDetails.paymentAccountNumber} onChange={(e) => onUpdateProposalDetails({ paymentAccountNumber: e.target.value })} placeholder="cth., 1234567890"/>
+                        </div>
+                     </div>
+                 </div>
+                 
+                 <div>
+                    <h3 className="text-lg font-semibold mb-2">Tanda Tangan Digital</h3>
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <Label htmlFor="signature-name">Nama untuk Tanda Tangan</Label>
+                           <Input id="signature-name" value={proposalDetails.signatureName} onChange={(e) => onUpdateProposalDetails({ signatureName: e.target.value })} placeholder="Nama lengkap Anda"/>
+                        </div>
+                        <div className="space-y-2">
+                             <Label>Gaya Tanda Tangan</Label>
+                             <RadioGroup
+                                value={proposalDetails.signatureFont}
+                                onValueChange={(value) => onUpdateProposalDetails({ signatureFont: value as ProposalDetails['signatureFont'] })}
+                                className="flex flex-wrap gap-4 pt-2"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="dancing-script" id="font1" />
+                                  <Label htmlFor="font1" className="font-normal cursor-pointer font-['Dancing_Script'] text-lg">Gaya 1</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="pacifico" id="font2" />
+                                  <Label htmlFor="font2" className="font-normal cursor-pointer font-['Pacifico'] text-lg">Gaya 2</Label>
+                                </div>
+                                 <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="sacramento" id="font3" />
+                                  <Label htmlFor="font3" className="font-normal cursor-pointer font-['Sacramento'] text-lg">Gaya 3</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="great-vibes" id="font4" />
+                                  <Label htmlFor="font4" className="font-normal cursor-pointer font-['Great_Vibes'] text-lg">Gaya 4</Label>
+                                </div>
+                              </RadioGroup>
+                        </div>
+                     </div>
+                 </div>
+              </div>
+            </TabsContent>
+
           </div>
         </Tabs>
       </CardContent>

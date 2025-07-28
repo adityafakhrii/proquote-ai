@@ -13,6 +13,10 @@ export default {
         body: ['PT Sans', 'sans-serif'],
         headline: ['Poppins', 'sans-serif'],
         code: ['monospace'],
+        'dancing-script': ['"Dancing Script"', 'cursive'],
+        'pacifico': ['"Pacifico"', 'cursive'],
+        'sacramento': ['"Sacramento"', 'cursive'],
+        'great-vibes': ['"Great Vibes"', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',

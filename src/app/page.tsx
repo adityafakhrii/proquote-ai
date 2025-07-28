@@ -11,7 +11,23 @@ import { EditStep } from '@/components/proquote/edit-step';
 import { ProposalStep } from '@/components/proquote/proposal-step';
 import { Logo } from '@/components/proquote/logo';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ClientProfileStep } from '@/components/proquote/client-profile-step';
+
+export type ClientProfile = {
+  recipientName: string;
+  companyName: string;
+  profileType: 'startup' | 'multinational' | 'government' | 'other';
+};
+
+export type ProposalDetails = {
+    subject: string;
+    from: string;
+    paymentBank: string;
+    paymentAccountName: string;
+    paymentAccountNumber: string;
+    signatureName: string;
+    signatureFont: 'dancing-script' | 'pacifico' | 'sacramento' | 'great-vibes';
+};
 
 export type EditableAnalysis = Required<Omit<AnalyzeProjectRequirementsOutput, 'isProjectRequirementDocument' | 'costDetails'>> & {
   costDetails: {
@@ -27,6 +43,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] =
     useState<EditableAnalysis | null>(null);
+  const [clientProfile, setClientProfile] = useState<ClientProfile>({
+      recipientName: '',
+      companyName: '',
+      profileType: 'startup'
+  });
+  const [proposalDetails, setProposalDetails] = useState<ProposalDetails>({
+      subject: 'Proposal Penawaran Proyek Pengembangan Perangkat Lunak',
+      from: 'ProQuoteAI Solutions',
+      paymentBank: '',
+      paymentAccountName: '',
+      paymentAccountNumber: '',
+      signatureName: '',
+      signatureFont: 'dancing-script'
+  });
   const { toast } = useToast();
 
   const manpowerCost = useMemo(() => {
@@ -58,23 +88,38 @@ export default function Home() {
     }
   };
 
-  const handleAnalyze = async () => {
+  const handleGoToClientProfile = () => {
     if (!file) {
       toast({
-        variant: 'destructive',
-        title: 'Tidak Ada File yang Dipilih',
-        description: 'Silakan pilih PDF persyaratan proyek untuk dianalisis.',
+          variant: 'destructive',
+          title: 'Tidak Ada File yang Dipilih',
+          description: 'Silakan pilih PDF persyaratan proyek untuk melanjutkan.',
       });
       return;
     }
+    setStep(2);
+  };
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+
     setIsLoading(true);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         const dataUri = reader.result as string;
+        
+        const profileMap = {
+            'startup': 'Startup kecil',
+            'multinational': 'Perusahaan multinasional',
+            'government': 'Lembaga pemerintah',
+            'other': 'Lainnya'
+        };
+
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
+          clientProfile: profileMap[clientProfile.profileType],
         });
 
         if (!result.isProjectRequirementDocument || !result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
@@ -100,7 +145,7 @@ export default function Home() {
         };
 
         setAnalysisResult(initialResult);
-        setStep(2);
+        setStep(3); // Go to Edit Step
         setIsLoading(false);
       };
       reader.onerror = () => {
@@ -128,8 +173,12 @@ export default function Home() {
     }
   };
 
+  const handleUpdateProposalDetails = (updates: Partial<ProposalDetails>) => {
+      setProposalDetails(prev => ({ ...prev, ...updates }));
+  };
+
   const handleGenerateProposal = () => {
-    setStep(3);
+    setStep(4);
   };
   
   const handlePrint = () => {
@@ -147,11 +196,16 @@ export default function Home() {
     setFile(null);
     setFileName('');
     setAnalysisResult(null);
+    setClientProfile({
+        recipientName: '',
+        companyName: '',
+        profileType: 'startup'
+    });
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
-      <header className="p-4 border-b bg-card sticky top-0 z-20">
+      <header className="p-4 border-b bg-card sticky top-0 z-20 no-print">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo className="h-8 w-8 text-primary" />
@@ -169,24 +223,35 @@ export default function Home() {
           {step === 1 && (
             <UploadStep
               onFileChange={handleFileChange}
-              onAnalyze={handleAnalyze}
-              isLoading={isLoading}
+              onNext={handleGoToClientProfile}
               fileName={fileName}
             />
           )}
-          {step === 2 && analysisResult && (
+          {step === 2 && (
+             <ClientProfileStep 
+                clientProfile={clientProfile}
+                setClientProfile={setClientProfile}
+                onAnalyze={handleAnalyze}
+                onBack={handleBack}
+                isLoading={isLoading}
+             />
+          )}
+          {step === 3 && analysisResult && (
             <EditStep
               analysisResult={analysisResult}
+              proposalDetails={proposalDetails}
               onUpdate={handleUpdate}
+              onUpdateProposalDetails={handleUpdateProposalDetails}
               onNext={handleGenerateProposal}
               onBack={handleBack}
               manpowerCost={manpowerCost}
             />
           )}
-          {step === 3 && analysisResult && (
+          {step === 4 && analysisResult && (
             <ProposalStep
               analysisResult={analysisResult}
-              fileName={fileName}
+              clientProfile={clientProfile}
+              proposalDetails={proposalDetails}
               onPrint={handlePrint}
               onBack={handleBack}
               manpowerCost={manpowerCost}
@@ -194,7 +259,7 @@ export default function Home() {
           )}
         </div>
       </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground">
+      <footer className="text-center p-4 text-sm text-muted-foreground no-print">
         Didukung oleh AI. Verifikasi semua perkiraan sebelum mengirim ke klien.
       </footer>
     </div>

@@ -12,19 +12,17 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UploadCloud, FileText, Loader2, Wand2 } from 'lucide-react';
+import { UploadCloud, FileText, ArrowRight } from 'lucide-react';
 
 interface UploadStepProps {
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onAnalyze: () => void;
-  isLoading: boolean;
+  onNext: () => void;
   fileName: string;
 }
 
 export function UploadStep({
   onFileChange,
-  onAnalyze,
-  isLoading,
+  onNext,
   fileName,
 }: UploadStepProps) {
   return (
@@ -43,7 +41,7 @@ export function UploadStep({
         <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors duration-300">
             <UploadCloud className="h-12 w-12 text-muted-foreground" />
             <p className="mt-4 text-lg font-semibold">
-                Seret & lepas PDF Anda di sini atau klik untuk menelusuri
+                Seret &amp; lepas PDF Anda di sini atau klik untuk menelusuri
             </p>
             <p className="text-sm text-muted-foreground mt-1">
                 Ukuran file maksimum: 10MB
@@ -54,7 +52,6 @@ export function UploadStep({
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={onFileChange}
                 accept="application/pdf"
-                disabled={isLoading}
             />
         </div>
         {fileName && (
@@ -67,20 +64,10 @@ export function UploadStep({
       <CardFooter>
         <Button
           className="w-full text-lg py-6"
-          onClick={onAnalyze}
-          disabled={isLoading || !fileName}
+          onClick={onNext}
+          disabled={!fileName}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Menganalisis...
-            </>
-          ) : (
-            <>
-              <Wand2 className="mr-2 h-5 w-5" />
-              Analisis Proyek
-            </>
-          )}
+          Lanjutkan <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </CardFooter>
     </Card>

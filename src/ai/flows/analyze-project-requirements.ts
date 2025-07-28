@@ -17,6 +17,7 @@ const AnalyzeProjectRequirementsInputSchema = z.object({
     .describe(
       "A project requirements document (PDF) as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  clientProfile: z.string().describe("Profil singkat klien, misal: 'Startup kecil', 'Perusahaan multinasional', 'Lembaga pemerintah'. Ini akan mempengaruhi estimasi biaya dan durasi."),
 });
 export type AnalyzeProjectRequirementsInput = z.infer<typeof AnalyzeProjectRequirementsInputSchema>;
 
@@ -63,6 +64,7 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzeProjectRequirementsOutputSchema},
   prompt: `Anda adalah seorang manajer proyek dan analis bisnis ahli di Indonesia. Analisis dokumen berikut dan berikan data dalam format JSON yang terstruktur.
 
+Profil Klien: {{{clientProfile}}}
 Dokumen: {{media url=documentDataUri}}
 
 TUGAS UTAMA:
@@ -74,7 +76,7 @@ TUGAS UTAMA:
 3.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
 4.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk **gaji bulanan**, berikan estimasi yang wajar dan realistis untuk setiap peran dalam IDR, berdasarkan pengetahuan Anda tentang standar industri dan pasar kerja di Indonesia. **SANGAT PENTING: Setiap peran harus memiliki estimasi gaji yang berbeda sesuai dengan tanggung jawab dan tingkat senioritasnya.** Jangan samakan semua gaji. Contoh: Gaji "Backend Developer" harus lebih tinggi dari "UI/UX Designer", dan "Project Manager" harus memiliki gaji yang berbeda pula.
 5.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%.
-6.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini.
+6.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini. **Sesuaikan durasi proyek berdasarkan profil klien**. Untuk 'Perusahaan Multinasional', mungkin bisa lebih cepat. Untuk 'Startup Kecil', berikan durasi yang sedikit lebih panjang.
 7.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.
 `,
 });
