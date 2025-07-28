@@ -19,7 +19,7 @@ import { useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { suggestTechnologies } from '@/ai/flows/suggest-technologies';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -80,7 +80,6 @@ export function EditStep({
     new Intl.NumberFormat('id-ID').format(value);
 
   const parseFormattedNumber = (value: string): number => {
-    // This regex removes all characters except digits
     const cleanedValue = value.replace(/[^\d]/g, '');
     return Number(cleanedValue);
   };
@@ -125,15 +124,15 @@ export function EditStep({
 
   const handleTimelineChange = (
     index: number,
-    field: 'phase' | 'activity',
-    value: string
+    field: 'phase' | 'activity' | 'month',
+    value: string | number
   ) => {
     const newTimeline = [...estimatedTimeline];
     const itemToUpdate = { ...newTimeline[index] };
-    if (field === 'phase') {
-        itemToUpdate.phase = value;
+    if (field === 'month') {
+        itemToUpdate.month = Number(value);
     } else {
-      itemToUpdate.activity = value;
+      itemToUpdate[field] = value as string;
     }
     newTimeline[index] = itemToUpdate;
     onUpdate({ estimatedTimeline: newTimeline });
@@ -150,8 +149,10 @@ export function EditStep({
   };
 
   const handleRemoveTimelineItem = (index: number) => {
+    const newTimeline = estimatedTimeline.filter((_, i) => i !== index);
+    const reindexedTimeline = newTimeline.map((item, idx) => ({...item, month: idx + 1}));
     onUpdate({
-      estimatedTimeline: estimatedTimeline.filter((_, i) => i !== index),
+      estimatedTimeline: reindexedTimeline,
     });
   };
 
@@ -462,6 +463,7 @@ export function EditStep({
                       <Input
                         type="number"
                         value={item.month}
+                        onChange={(e) => handleTimelineChange(index, 'month', e.target.value)}
                         className="w-20 text-center"
                         readOnly
                         disabled
@@ -489,9 +491,12 @@ export function EditStep({
                 <Button variant="outline" onClick={handleAddTimelineItem}>
                   <Plus className="mr-2 h-4 w-4" /> Tambah Baris
                 </Button>
-                 <div className="bg-amber-50 border-l-4 border-amber-500 text-amber-700 p-4 rounded-md mt-4" role="alert">
-                    <p>Total durasi proyek saat ini adalah <span className="font-bold">{projectDuration} bulan</span>. Mengubah linimasa akan mempengaruhi perhitungan biaya tenaga kerja.</p>
-                </div>
+                 <Alert variant="default" className="bg-amber-50 border-amber-500 text-amber-700">
+                    <AlertTitle className='font-bold'>Informasi Durasi Proyek</AlertTitle>
+                    <AlertDescription>
+                        Total durasi proyek saat ini adalah <span className="font-semibold">{projectDuration} bulan</span>. Mengubah linimasa akan mempengaruhi perhitungan biaya tenaga kerja.
+                    </AlertDescription>
+                </Alert>
               </div>
             </TabsContent>
 

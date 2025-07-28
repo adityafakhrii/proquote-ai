@@ -91,7 +91,7 @@ export default function Home() {
           projectSummary: result.projectSummary,
           requiredFeatures: result.requiredFeatures,
           estimatedRoles: result.estimatedRoles,
-          estimatedTimeline: result.estimatedTimeline,
+          estimatedTimeline: result.estimatedTimeline.sort((a, b) => a.month - b.month),
           suggestedTechnologies: result.suggestedTechnologies,
           costDetails: {
             technicalModal: result.costDetails.technicalModal,
@@ -120,7 +120,11 @@ export default function Home() {
 
   const handleUpdate = (updates: Partial<EditableAnalysis>) => {
     if (analysisResult) {
-      setAnalysisResult({ ...analysisResult, ...updates });
+      const newResult = { ...analysisResult, ...updates };
+      if (updates.estimatedTimeline) {
+          newResult.estimatedTimeline = updates.estimatedTimeline.sort((a,b) => a.month - b.month);
+      }
+      setAnalysisResult(newResult);
     }
   };
 
