@@ -136,7 +136,7 @@ export function ProposalStep({
             <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
                 Fitur-fitur Wajib
             </h3>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 list-inside">
+            <ul className="grid grid-cols-2 gap-x-8 gap-y-2 list-inside">
                 {requiredFeatures.map((feature, index) => (
                     <li key={index} className="flex items-start">
                         <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1 shrink-0" />
