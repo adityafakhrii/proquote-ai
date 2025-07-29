@@ -123,8 +123,7 @@ export function ProposalStep({
 
           {/* Project Summary */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-                <FileText className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
                 Ringkasan Proyek
             </h3>
             <p className="text-muted-foreground">
@@ -134,8 +133,7 @@ export function ProposalStep({
           
           {/* Required Features */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-                <CheckCircle className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
                 Fitur-fitur Wajib
             </h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 list-inside">
@@ -150,8 +148,7 @@ export function ProposalStep({
 
           {/* Roles */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-              <Users className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
               Estimasi Tim / Manpower
             </h3>
              <ul className="list-disc list-inside space-y-1 pl-2 text-muted-foreground">
@@ -163,8 +160,7 @@ export function ProposalStep({
 
           {/* Costs */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-              <Wallet className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
               Estimasi Biaya Proyek
             </h3>
             <div className="space-y-4">
@@ -230,8 +226,7 @@ export function ProposalStep({
 
           {/* Payment Scheme */}
           <section>
-             <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-                <Landmark className="mr-3 h-6 w-6 text-accent"/>
+             <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
                 Skema Pembayaran
             </h3>
             <div className="bg-secondary/50 p-4 rounded-lg">
@@ -257,8 +252,7 @@ export function ProposalStep({
 
           {/* Timeline */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-              <GanttChartSquare className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
               Estimasi Linimasa Proyek
             </h3>
              <Table>
@@ -283,8 +277,7 @@ export function ProposalStep({
 
           {/* Tech Stack */}
           <section>
-            <h3 className="flex items-center text-xl font-headline font-semibold mb-4 border-b pb-2">
-              <Cpu className="mr-3 h-6 w-6 text-accent" />
+            <h3 className="text-xl font-headline font-semibold mb-4 border-b pb-2">
               Tech Stack yang Disarankan
             </h3>
             <div className="flex flex-wrap gap-2">
