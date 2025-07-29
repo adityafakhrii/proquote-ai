@@ -297,15 +297,22 @@ export function ProposalStep({
                 <div className='mt-12 flex justify-end'>
                     <div className='text-center'>
                         <p>Hormat kami,</p>
-                        {proposalDetails.signatureName ? (
-                            <>
-                                <p className={cn("text-4xl my-8", signatureFontClass)}>{proposalDetails.signatureName}</p>
+                        <div className='h-32 flex items-center justify-center'>
+                            {proposalDetails.signatureType === 'font' && proposalDetails.signatureName && (
+                                <p className={cn("text-4xl", signatureFontClass)}>{proposalDetails.signatureName}</p>
+                            )}
+                            {proposalDetails.signatureType === 'image' && proposalDetails.signatureImage && (
+                                <img src={proposalDetails.signatureImage} alt="Tanda Tangan" className="max-h-24" />
+                            )}
+                        </div>
+                        {proposalDetails.signatureType === 'font' && proposalDetails.signatureName ? (
+                             <>
                                 <p className='font-semibold'>{proposalDetails.signatureName}</p>
                                 <p className='text-sm text-muted-foreground'>{proposalDetails.from}</p>
-                            </>
-                        ) : (
-                            <div className='h-32'></div>
-                        )}
+                             </>
+                        ) : proposalDetails.signatureType === 'image' && proposalDetails.signatureImage ? (
+                             <p className='text-sm text-muted-foreground'>{proposalDetails.from}</p>
+                        ) : null}
                     </div>
                 </div>
             </section>

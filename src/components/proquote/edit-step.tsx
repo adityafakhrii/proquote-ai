@@ -14,8 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check, Banknote, Signature } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check, Banknote, Signature, FileImage, Type } from 'lucide-react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { getSalarySuggestion } from '@/ai/flows/get-salary-suggestion';
@@ -30,6 +30,7 @@ interface EditStepProps {
   proposalDetails: ProposalDetails;
   onUpdate: (updates: Partial<EditableAnalysis>) => void;
   onUpdateProposalDetails: (updates: Partial<ProposalDetails>) => void;
+  onSignatureImageChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
   onBack: () => void;
   manpowerCost: number;
@@ -59,6 +60,7 @@ export function EditStep({
   proposalDetails,
   onUpdate,
   onUpdateProposalDetails,
+  onSignatureImageChange,
   onNext,
   onBack,
   manpowerCost,
@@ -586,40 +588,72 @@ export function EditStep({
                      </div>
                  </div>
                  
-                 <div>
-                    <h3 className="text-lg font-semibold mb-2">Tanda Tangan Digital</h3>
-                     <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                           <Label htmlFor="signature-name">Nama untuk Tanda Tangan</Label>
-                           <Input id="signature-name" value={proposalDetails.signatureName} onChange={(e) => onUpdateProposalDetails({ signatureName: e.target.value })} placeholder="Nama lengkap Anda"/>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Tanda Tangan Digital</h3>
+                   <div className="space-y-4">
+                      <RadioGroup
+                        value={proposalDetails.signatureType}
+                        onValueChange={(value) => onUpdateProposalDetails({ signatureType: value as 'font' | 'image' })}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="font" id="sig-font" />
+                          <Label htmlFor="sig-font" className="font-normal flex items-center gap-2 cursor-pointer"><Type/> Gaya Font</Label>
                         </div>
-                        <div className="space-y-2">
-                             <Label>Gaya Tanda Tangan</Label>
-                             <RadioGroup
-                                value={proposalDetails.signatureFont}
-                                onValueChange={(value) => onUpdateProposalDetails({ signatureFont: value as ProposalDetails['signatureFont'] })}
-                                className="flex flex-wrap gap-4 pt-2"
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="dancing-script" id="font1" />
-                                  <Label htmlFor="font1" className="font-normal cursor-pointer font-dancing-script text-lg">Gaya 1</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="pacifico" id="font2" />
-                                  <Label htmlFor="font2" className="font-normal cursor-pointer font-pacifico text-lg">Gaya 2</Label>
-                                </div>
-                                 <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="sacramento" id="font3" />
-                                  <Label htmlFor="font3" className="font-normal cursor-pointer font-sacramento text-lg">Gaya 3</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="great-vibes" id="font4" />
-                                  <Label htmlFor="font4" className="font-normal cursor-pointer font-great-vibes text-lg">Gaya 4</Label>
-                                </div>
-                              </RadioGroup>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="image" id="sig-image" />
+                          <Label htmlFor="sig-image" className="font-normal flex items-center gap-2 cursor-pointer"><FileImage/> Unggah Gambar</Label>
                         </div>
-                     </div>
-                 </div>
+                      </RadioGroup>
+
+                      {proposalDetails.signatureType === 'font' && (
+                         <div className="grid md:grid-cols-2 gap-4 pt-2 animate-in fade-in-50">
+                            <div className="space-y-2">
+                               <Label htmlFor="signature-name">Nama untuk Tanda Tangan</Label>
+                               <Input id="signature-name" value={proposalDetails.signatureName} onChange={(e) => onUpdateProposalDetails({ signatureName: e.target.value })} placeholder="Nama lengkap Anda"/>
+                            </div>
+                            <div className="space-y-2">
+                                 <Label>Gaya Tanda Tangan</Label>
+                                 <RadioGroup
+                                    value={proposalDetails.signatureFont}
+                                    onValueChange={(value) => onUpdateProposalDetails({ signatureFont: value as ProposalDetails['signatureFont'] })}
+                                    className="flex flex-wrap gap-4 pt-2"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="dancing-script" id="font1" />
+                                      <Label htmlFor="font1" className="font-normal cursor-pointer font-dancing-script text-lg">Gaya 1</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="pacifico" id="font2" />
+                                      <Label htmlFor="font2" className="font-normal cursor-pointer font-pacifico text-base">Gaya 2</Label>
+                                    </div>
+                                     <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="sacramento" id="font3" />
+                                      <Label htmlFor="font3" className="font-normal cursor-pointer font-sacramento text-xl">Gaya 3</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="great-vibes" id="font4" />
+                                      <Label htmlFor="font4" className="font-normal cursor-pointer font-great-vibes text-xl">Gaya 4</Label>
+                                    </div>
+                                  </RadioGroup>
+                            </div>
+                         </div>
+                      )}
+                      
+                      {proposalDetails.signatureType === 'image' && (
+                        <div className="pt-2 animate-in fade-in-50">
+                            <Label htmlFor="signature-upload">Unggah Tanda Tangan (PNG)</Label>
+                            <Input id="signature-upload" type="file" accept="image/png" onChange={onSignatureImageChange} className="mt-2" />
+                            {proposalDetails.signatureImage && (
+                                <div className="mt-4 p-4 border rounded-md flex justify-center bg-muted/50">
+                                    <img src={proposalDetails.signatureImage} alt="Pratinjau Tanda Tangan" className="max-h-24" />
+                                </div>
+                            )}
+                        </div>
+                      )}
+
+                   </div>
+                </div>
               </div>
             </TabsContent>
 

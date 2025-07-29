@@ -25,8 +25,10 @@ export type ProposalDetails = {
     paymentBank: string;
     paymentAccountName: string;
     paymentAccountNumber: string;
+    signatureType: 'font' | 'image';
     signatureName: string;
     signatureFont: 'dancing-script' | 'pacifico' | 'sacramento' | 'great-vibes';
+    signatureImage: string | null;
 };
 
 export type EditableAnalysis = Required<Omit<AnalyzeProjectRequirementsOutput, 'isProjectRequirementDocument' | 'costDetails'>> & {
@@ -54,8 +56,10 @@ export default function Home() {
       paymentBank: '',
       paymentAccountName: '',
       paymentAccountNumber: '',
+      signatureType: 'font',
       signatureName: '',
-      signatureFont: 'dancing-script'
+      signatureFont: 'dancing-script',
+      signatureImage: null,
   });
   const { toast } = useToast();
 
@@ -114,29 +118,35 @@ export default function Home() {
             'other': 'Lainnya'
         };
 
+        // If it's the first analysis (from upload step), just validate the document
+        if (step === 1) {
+            const result = await analyzeProjectRequirements({
+                documentDataUri: dataUri,
+                clientProfile: profileMap['startup'], // Use default for initial check
+            });
+
+            if (!result.isProjectRequirementDocument) {
+              toast({
+                variant: 'destructive',
+                title: 'Dokumen Tidak Sesuai',
+                description: 'Dokumen yang Anda unggah bukan dokumen persyaratan proyek. Silakan coba lagi.',
+              });
+              setIsLoading(false);
+              return;
+            }
+            setStep(2);
+            setIsLoading(false);
+            return;
+        }
+
+
+        // If it's the second analysis (from client profile step), populate the data
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
           clientProfile: profileMap[profileToAnalyze.profileType],
         });
 
-        if (!result.isProjectRequirementDocument) {
-          toast({
-            variant: 'destructive',
-            title: 'Dokumen Tidak Sesuai',
-            description: 'Dokumen yang Anda unggah bukan dokumen persyaratan proyek. Silakan coba lagi.',
-          });
-          setIsLoading(false);
-          return;
-        }
 
-        // If it's the first analysis (from upload step), just go to client profile step
-        if (step === 1) {
-          setStep(2);
-          setIsLoading(false);
-          return;
-        }
-
-        // If it's the second analysis (from client profile step), populate the data
         if (!result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
           toast({
             variant: 'destructive',
@@ -200,6 +210,23 @@ export default function Home() {
   const handleUpdateProposalDetails = (updates: Partial<ProposalDetails>) => {
       setProposalDetails(prev => ({ ...prev, ...updates }));
   };
+  
+  const handleSignatureImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        handleUpdateProposalDetails({ signatureImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'File Tidak Valid',
+        description: 'Silakan unggah file gambar dengan format PNG.',
+      });
+    }
+  };
 
   const handleGenerateProposal = () => {
     setStep(4);
@@ -224,6 +251,17 @@ export default function Home() {
         recipientName: '',
         companyName: '',
         profileType: 'startup'
+    });
+    setProposalDetails({
+        subject: 'Proposal Penawaran Proyek Pengembangan Perangkat Lunak',
+        from: 'ProQuoteAI Solutions',
+        paymentBank: '',
+        paymentAccountName: '',
+        paymentAccountNumber: '',
+        signatureType: 'font',
+        signatureName: '',
+        signatureFont: 'dancing-script',
+        signatureImage: null,
     });
   };
 
@@ -269,6 +307,7 @@ export default function Home() {
               proposalDetails={proposalDetails}
               onUpdate={handleUpdate}
               onUpdateProposalDetails={handleUpdateProposalDetails}
+              onSignatureImageChange={handleSignatureImageChange}
               onNext={handleGenerateProposal}
               onBack={handleBack}
               manpowerCost={manpowerCost}
