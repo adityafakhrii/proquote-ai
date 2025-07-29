@@ -13,13 +13,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Wand2 } from 'lucide-react';
+import { ArrowLeft, Wand2, Loader2 } from 'lucide-react';
 
 interface ClientProfileStepProps {
   clientProfile: ClientProfile;
   setClientProfile: (profile: ClientProfile) => void;
   onNext: () => void;
   onBack: () => void;
+  isLoading: boolean;
 }
 
 export function ClientProfileStep({
@@ -27,6 +28,7 @@ export function ClientProfileStep({
   setClientProfile,
   onNext,
   onBack,
+  isLoading,
 }: ClientProfileStepProps) {
   
   const handleProfileChange = (field: keyof ClientProfile, value: string) => {
@@ -52,6 +54,7 @@ export function ClientProfileStep({
                     placeholder="cth., Bapak Budi"
                     value={clientProfile.recipientName}
                     onChange={(e) => handleProfileChange('recipientName', e.target.value)}
+                    disabled={isLoading}
                 />
             </div>
             <div className="space-y-2">
@@ -61,6 +64,7 @@ export function ClientProfileStep({
                     placeholder="cth., PT. Jaya Abadi"
                     value={clientProfile.companyName}
                     onChange={(e) => handleProfileChange('companyName', e.target.value)}
+                    disabled={isLoading}
                 />
             </div>
         </div>
@@ -70,6 +74,7 @@ export function ClientProfileStep({
             value={clientProfile.profileType}
             onValueChange={(value) => handleProfileChange('profileType', value)}
             className="flex flex-col sm:flex-row gap-4"
+            disabled={isLoading}
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="startup" id="startup" />
@@ -91,15 +96,24 @@ export function ClientProfileStep({
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-         <Button variant="outline" onClick={onBack}>
+         <Button variant="outline" onClick={onBack} disabled={isLoading}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
         <Button
           onClick={onNext}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
         >
-            <Wand2 className="mr-2 h-5 w-5" />
-            Analisis & Buat Estimasi
+            {isLoading ? (
+                <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Menganalisis...
+                </>
+            ) : (
+                <>
+                    <Wand2 className="mr-2 h-5 w-5" />
+                    Analisis & Buat Estimasi
+                </>
+            )}
         </Button>
       </CardFooter>
     </Card>

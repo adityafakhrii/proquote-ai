@@ -260,6 +260,7 @@ export default function Home() {
                 }}
                 onNext={() => handleAnalyze(clientProfile)}
                 onBack={handleBack}
+                isLoading={isLoading}
              />
           )}
           {step === 3 && analysisResult && (
