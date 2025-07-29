@@ -30,6 +30,7 @@ const AnalyzeProjectRequirementsOutputSchema = z.object({
         role: z.string().describe('Jabatan atau peran yang dibutuhkan.'), 
         count: z.number().describe('Jumlah orang untuk peran tersebut.'),
         monthlySalary: z.number().describe('Estimasi gaji bulanan per orang untuk peran ini dalam IDR, berdasarkan data UMR atau standar industri.'),
+        salarySource: z.string().describe('Sumber data gaji, setel ke "Estimasi AI".'),
     }))
     .optional()
     .describe('Estimasi peran, jumlah orang, dan gaji bulanan per peran.'),
@@ -74,7 +75,7 @@ TUGAS UTAMA:
 
 2.  **Ringkasan Proyek**: Jika dokumen valid, tulis deskripsi singkat dan ringkasan umum dari proyek ini.
 3.  **Fitur Wajib**: Ekstrak dan buat daftar fitur-fitur utama yang wajib ada sesuai dokumen.
-4.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk **gaji bulanan**, berikan estimasi yang wajar dan realistis untuk setiap peran dalam IDR, berdasarkan pengetahuan Anda tentang standar industri dan pasar kerja di Indonesia. **SANGAT PENTING: Setiap peran harus memiliki estimasi gaji yang berbeda sesuai dengan tanggung jawab dan tingkat senioritasnya.** Jangan samakan semua gaji. Contoh: Gaji "Backend Developer" harus lebih tinggi dari "UI/UX Designer", dan "Project Manager" harus memiliki gaji yang berbeda pula.
+4.  **Estimasi Tim & Gaji**: Buat daftar peran yang dibutuhkan dan jumlah orang per peran. Untuk **gaji bulanan**, berikan estimasi yang wajar dan realistis untuk setiap peran dalam IDR, berdasarkan pengetahuan Anda tentang standar industri dan pasar kerja di Indonesia. Untuk **sumber gaji**, selalu setel nilainya ke "Estimasi AI". **SANGAT PENTING: Setiap peran harus memiliki estimasi gaji yang berbeda sesuai dengan tanggung jawab dan tingkat senioritasnya.** Jangan samakan semua gaji. Contoh: Gaji "Backend Developer" harus lebih tinggi dari "UI/UX Designer", dan "Project Manager" harus memiliki gaji yang berbeda pula.
 5.  **Estimasi Biaya Awal**: Berikan estimasi awal untuk 'Modal Teknis' (meliputi biaya tools, software, server, domain, dll.). Set profit margin default ke 20%.
 6.  **Estimasi Linimasa**: Buat linimasa bulanan. Setiap baris berisi bulan (angka), fase, dan aktivitas utama. Tentukan durasi total proyek dari linimasa ini. **Sesuaikan durasi proyek berdasarkan profil klien**. Untuk 'Perusahaan Multinasional', mungkin bisa lebih cepat. Untuk 'Startup Kecil', berikan durasi yang sedikit lebih panjang.
 7.  **Saran Teknologi**: Sarankan tumpukan teknologi (tech stack) yang relevan.

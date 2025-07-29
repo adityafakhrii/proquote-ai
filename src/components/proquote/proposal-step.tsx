@@ -202,7 +202,8 @@ export function ProposalStep({
                       <TableRow>
                         <TableHead>Peran</TableHead>
                         <TableHead className="text-center">Jumlah</TableHead>
-                        <TableHead className="text-right">Gaji/Bulan</TableHead>
+                        <TableHead>Gaji/Bulan</TableHead>
+                        <TableHead>Sumber Gaji</TableHead>
                         <TableHead className="text-center">Durasi</TableHead>
                         <TableHead className="text-right">Subtotal</TableHead>
                       </TableRow>
@@ -212,7 +213,8 @@ export function ProposalStep({
                         <TableRow key={index}>
                           <TableCell className="font-medium">{role.role}</TableCell>
                           <TableCell className="text-center">{role.count}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(role.monthlySalary)}</TableCell>
+                          <TableCell>{formatCurrency(role.monthlySalary)}</TableCell>
+                          <TableCell>{role.salarySource}</TableCell>
                           <TableCell className="text-center">{projectDuration} bulan</TableCell>
                           <TableCell className="text-right font-semibold">{formatCurrency(role.count * role.monthlySalary * projectDuration)}</TableCell>
                         </TableRow>

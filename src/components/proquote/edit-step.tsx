@@ -98,26 +98,34 @@ export function EditStep({
 
   const handleRoleChange = (
     index: number,
-    field: 'role' | 'count' | 'monthlySalary',
+    field: 'role' | 'count' | 'monthlySalary' | 'salarySource',
     value: string | number
   ) => {
     const newRoles = [...estimatedRoles];
     const roleToUpdate = { ...newRoles[index] };
-    if (field === 'role') {
-      roleToUpdate.role = value as string;
+  
+    if (field === 'role' || field === 'salarySource') {
+      roleToUpdate[field] = value as string;
     } else if (field === 'monthlySalary') {
       const parsedValue = typeof value === 'string' ? parseFormattedNumber(value) : value;
       roleToUpdate.monthlySalary = parsedValue;
+      // If salary is updated manually, set source to "Manual"
+      if (roleToUpdate.salarySource !== 'Manual') {
+        const isSuggestion = salarySuggestions.some(s => s.salary === parsedValue);
+        if (!isSuggestion) {
+            roleToUpdate.salarySource = 'Manual';
+        }
+      }
+    } else { // count
+      roleToUpdate.count = Number(value);
     }
-     else {
-      roleToUpdate[field] = Number(value);
-    }
+  
     newRoles[index] = roleToUpdate;
     onUpdate({ estimatedRoles: newRoles });
   };
   
   const handleAddRole = () => {
-    onUpdate({ estimatedRoles: [...estimatedRoles, { role: '', count: 1, monthlySalary: 0 }] });
+    onUpdate({ estimatedRoles: [...estimatedRoles, { role: '', count: 1, monthlySalary: 0, salarySource: 'Manual' }] });
   };
 
   const handleRemoveRole = (index: number) => {
@@ -214,8 +222,14 @@ export function EditStep({
     }
   };
 
-  const onSelectSuggestion = (index: number, salary: number) => {
-    handleRoleChange(index, 'monthlySalary', salary);
+  const onSelectSuggestion = (index: number, suggestion: SalarySuggestion) => {
+    const newRoles = [...estimatedRoles];
+    newRoles[index] = {
+      ...newRoles[index],
+      monthlySalary: suggestion.salary,
+      salarySource: suggestion.source,
+    };
+    onUpdate({ estimatedRoles: newRoles });
     setSalarySuggestions([]);
   };
 
@@ -299,7 +313,7 @@ export function EditStep({
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    Gaji default adalah estimasi AI berdasarkan standar industri di Indonesia. Klik tombol ✨ untuk melihat perbandingan dari sumber lain.
+                    Gaji default adalah estimasi AI. Klik tombol ✨ untuk melihat perbandingan dari sumber lain atau isi manual. Sumber akan tercatat di proposal.
                   </AlertDescription>
                 </Alert>
                 <div className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-2 font-medium pt-2">
@@ -396,7 +410,7 @@ export function EditStep({
                                     {salarySuggestions.map((suggestion) => (
                                     <CommandItem
                                         key={suggestion.source}
-                                        onSelect={() => onSelectSuggestion(index, suggestion.salary)}
+                                        onSelect={() => onSelectSuggestion(index, suggestion)}
                                         className="flex justify-between"
                                     >
                                         <span>{suggestion.source}</span>
