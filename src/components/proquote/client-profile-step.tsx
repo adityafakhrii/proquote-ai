@@ -14,30 +14,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, Wand2 } from 'lucide-react';
-import { useState } from 'react';
 
 interface ClientProfileStepProps {
   clientProfile: ClientProfile;
   setClientProfile: (profile: ClientProfile) => void;
+  onNext: () => void;
   onBack: () => void;
 }
 
 export function ClientProfileStep({
   clientProfile,
   setClientProfile,
+  onNext,
   onBack,
 }: ClientProfileStepProps) {
-  const [localProfile, setLocalProfile] = useState(clientProfile);
   
   const handleProfileChange = (field: keyof ClientProfile, value: string) => {
-    setLocalProfile(prev => ({ ...prev, [field]: value }));
+    setClientProfile({ ...clientProfile, [field]: value });
   };
   
-  const handleNext = () => {
-    setClientProfile(localProfile);
-  };
-  
-  const isFormValid = localProfile.recipientName && localProfile.companyName;
+  const isFormValid = clientProfile.recipientName && clientProfile.companyName;
 
   return (
     <Card className="w-full animate-in fade-in-50">
@@ -54,7 +50,7 @@ export function ClientProfileStep({
                 <Input
                     id="recipient-name"
                     placeholder="cth., Bapak Budi"
-                    value={localProfile.recipientName}
+                    value={clientProfile.recipientName}
                     onChange={(e) => handleProfileChange('recipientName', e.target.value)}
                 />
             </div>
@@ -63,7 +59,7 @@ export function ClientProfileStep({
                 <Input
                     id="company-name"
                     placeholder="cth., PT. Jaya Abadi"
-                    value={localProfile.companyName}
+                    value={clientProfile.companyName}
                     onChange={(e) => handleProfileChange('companyName', e.target.value)}
                 />
             </div>
@@ -71,7 +67,7 @@ export function ClientProfileStep({
         <div className="space-y-3">
           <Label>Jenis/Skala Perusahaan</Label>
           <RadioGroup
-            value={localProfile.profileType}
+            value={clientProfile.profileType}
             onValueChange={(value) => handleProfileChange('profileType', value)}
             className="flex flex-col sm:flex-row gap-4"
           >
@@ -99,7 +95,7 @@ export function ClientProfileStep({
           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
         <Button
-          onClick={handleNext}
+          onClick={onNext}
           disabled={!isFormValid}
         >
             <Wand2 className="mr-2 h-5 w-5" />

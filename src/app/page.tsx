@@ -181,10 +181,18 @@ export default function Home() {
 
   const handleUpdate = (updates: Partial<EditableAnalysis>) => {
     if (analysisResult) {
-      const newResult = { ...analysisResult, ...updates };
+      let newResult = { ...analysisResult, ...updates };
+  
       if (updates.estimatedTimeline) {
-          newResult.estimatedTimeline = updates.estimatedTimeline.sort((a,b) => a.month - b.month);
+        // Sort, then re-index the months to be sequential
+        newResult.estimatedTimeline = updates.estimatedTimeline
+          .sort((a, b) => a.month - b.month)
+          .map((item, index) => ({
+            ...item,
+            month: index + 1,
+          }));
       }
+      
       setAnalysisResult(newResult);
     }
   };
@@ -249,9 +257,8 @@ export default function Home() {
                 clientProfile={clientProfile}
                 setClientProfile={(profile) => {
                     setClientProfile(profile);
-                    // Re-run analysis with new profile info when it changes
-                    handleAnalyze(profile);
                 }}
+                onNext={() => handleAnalyze(clientProfile)}
                 onBack={handleBack}
              />
           )}
