@@ -12,6 +12,7 @@ import { ProposalStep } from '@/components/proquote/proposal-step';
 import { Logo } from '@/components/proquote/logo';
 import { Button } from '@/components/ui/button';
 import { ClientProfileStep } from '@/components/proquote/client-profile-step';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export type ClientProfile = {
   recipientName: string;
@@ -275,9 +276,12 @@ export default function Home() {
               ProQuoteAI
             </h1>
           </div>
-          {step > 1 && (
-             <Button variant="ghost" onClick={handleStartOver}>Mulai dari Awal</Button>
-          )}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {step > 1 && (
+              <Button variant="ghost" onClick={handleStartOver}>Mulai dari Awal</Button>
+            )}
+          </div>
         </div>
       </header>
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center">
