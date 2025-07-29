@@ -9,10 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { UploadStep } from '@/components/proquote/upload-step';
 import { EditStep } from '@/components/proquote/edit-step';
 import { ProposalStep } from '@/components/proquote/proposal-step';
-import { Logo } from '@/components/proquote/logo';
 import { Button } from '@/components/ui/button';
 import { ClientProfileStep } from '@/components/proquote/client-profile-step';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 export type ClientProfile = {
   recipientName: string;
@@ -267,23 +265,12 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary/50">
-      <header className="p-4 border-b bg-card sticky top-0 z-20 no-print">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-headline font-bold text-primary">
-              ProQuoteAI
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            {step > 1 && (
-              <Button variant="ghost" onClick={handleStartOver}>Mulai dari Awal</Button>
-            )}
-          </div>
+    <>
+      {step > 1 && (
+        <div className="container mx-auto flex justify-end pt-4 pr-4 no-print">
+            <Button variant="ghost" onClick={handleStartOver}>Mulai dari Awal</Button>
         </div>
-      </header>
+      )}
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="w-full max-w-4xl transition-all duration-300">
           {step === 1 && (
@@ -329,9 +316,6 @@ export default function Home() {
           )}
         </div>
       </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground no-print">
-        Didukung oleh AI. Verifikasi semua perkiraan sebelum mengirim ke klien.
-      </footer>
-    </div>
+    </>
   );
 }
