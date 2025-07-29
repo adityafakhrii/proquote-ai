@@ -678,7 +678,7 @@ export function EditStep({
         <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
-        <Button onClick={onNext} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button onClick={onNext}>
           Buat Proposal <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
