@@ -123,8 +123,12 @@ export function EditStep({
   };
 
   const handleCostChange = (field: keyof typeof costDetails, value: string) => {
-    const parsedValue = parseFormattedNumber(value);
-    onUpdate({ costDetails: { ...costDetails, [field]: Number(parsedValue) } });
+    const parsedValue = value === '' ? 0 : parseInt(value.replace(/\D/g, ''), 10);
+    if (!isNaN(parsedValue)) {
+      onUpdate({ costDetails: { ...costDetails, [field]: parsedValue } });
+    } else if (value === '') {
+       onUpdate({ costDetails: { ...costDetails, [field]: 0 } });
+    }
   };
 
   const handleTimelineChange = (
@@ -447,12 +451,8 @@ export function EditStep({
                         <Input
                           id="profit-margin"
                           type="number"
-                          value={costDetails.profitMargin}
-                          onChange={(e) => {
-                            // Ensure only integers are processed
-                            const value = Math.round(Number(e.target.value));
-                            handleCostChange('profitMargin', String(value));
-                          }}
+                          value={costDetails.profitMargin === 0 ? '' : costDetails.profitMargin}
+                          onChange={(e) => handleCostChange('profitMargin', e.target.value)}
                           placeholder="cth., 20"
                           className="rounded-r-none"
                         />
@@ -602,19 +602,19 @@ export function EditStep({
                               >
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="dancing-script" id="font1" />
-                                  <Label htmlFor="font1" className="font-normal cursor-pointer font-['Dancing_Script'] text-lg">Gaya 1</Label>
+                                  <Label htmlFor="font1" className="font-normal cursor-pointer font-dancing-script text-lg">Gaya 1</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="pacifico" id="font2" />
-                                  <Label htmlFor="font2" className="font-normal cursor-pointer font-['Pacifico'] text-lg">Gaya 2</Label>
+                                  <Label htmlFor="font2" className="font-normal cursor-pointer font-pacifico text-lg">Gaya 2</Label>
                                 </div>
                                  <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="sacramento" id="font3" />
-                                  <Label htmlFor="font3" className="font-normal cursor-pointer font-['Sacramento'] text-lg">Gaya 3</Label>
+                                  <Label htmlFor="font3" className="font-normal cursor-pointer font-sacramento text-lg">Gaya 3</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="great-vibes" id="font4" />
-                                  <Label htmlFor="font4" className="font-normal cursor-pointer font-['Great_Vibes'] text-lg">Gaya 4</Label>
+                                  <Label htmlFor="font4" className="font-normal cursor-pointer font-great-vibes text-lg">Gaya 4</Label>
                                 </div>
                               </RadioGroup>
                         </div>
