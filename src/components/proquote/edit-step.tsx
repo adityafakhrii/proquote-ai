@@ -444,7 +444,18 @@ export function EditStep({
                    <div className="space-y-2">
                     <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
                     <div className="flex items-center max-w-xs">
-                        <Input id="profit-margin" type="number" value={costDetails.profitMargin} onChange={(e) => onUpdateProposalDetails({ ...proposalDetails, costDetails: { ...costDetails, profitMargin: Number(e.target.value) } })} placeholder="cth., 20" className="rounded-r-none"/>
+                        <Input
+                          id="profit-margin"
+                          type="number"
+                          value={costDetails.profitMargin}
+                          onChange={(e) => {
+                            // Ensure only integers are processed
+                            const value = Math.round(Number(e.target.value));
+                            handleCostChange('profitMargin', String(value));
+                          }}
+                          placeholder="cth., 20"
+                          className="rounded-r-none"
+                        />
                         <span className="flex items-center justify-center bg-muted text-muted-foreground h-10 w-10 rounded-r-md border border-l-0 border-input">
                             <Percent className="h-4 w-4"/>
                         </span>
