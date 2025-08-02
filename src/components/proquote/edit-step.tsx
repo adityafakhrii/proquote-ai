@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check, Banknote, Signature, FileImage, Type } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wallet, Plus, Trash2, Users, Cpu, GanttChartSquare, Percent, Info, Sparkles, Loader2, Wand2, ChevronsUpDown, Check, Banknote, Signature, FileImage, Type, Bot } from 'lucide-react';
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -34,6 +34,10 @@ interface EditStepProps {
   onNext: () => void;
   onBack: () => void;
   manpowerCost: number;
+  assistantCommand: string;
+  setAssistantCommand: (command: string) => void;
+  onRunAssistant: () => void;
+  isAssistantLoading: boolean;
 }
 
 type SalarySuggestion = {
@@ -64,6 +68,10 @@ export function EditStep({
   onNext,
   onBack,
   manpowerCost,
+  assistantCommand,
+  setAssistantCommand,
+  onRunAssistant,
+  isAssistantLoading,
 }: EditStepProps) {
   const {
     estimatedRoles,
@@ -109,7 +117,6 @@ export function EditStep({
     } else if (field === 'monthlySalary') {
       const parsedValue = typeof value === 'string' ? parseFormattedNumber(value) : value;
       roleToUpdate.monthlySalary = parsedValue;
-      // If salary is updated manually, set source to "Manual"
       if (roleToUpdate.salarySource !== 'Manual') {
         const isSuggestion = salarySuggestions.some(s => s.salary === parsedValue);
         if (!isSuggestion) {
@@ -143,16 +150,12 @@ export function EditStep({
 
   const handleTimelineChange = (
     index: number,
-    field: 'phase' | 'activity' | 'month',
-    value: string | number
+    field: 'activity',
+    value: string
   ) => {
     const newTimeline = [...estimatedTimeline];
     const itemToUpdate = { ...newTimeline[index] };
-    if (field === 'month') {
-        itemToUpdate.month = Number(value);
-    } else {
-      itemToUpdate[field] = value as string;
-    }
+    itemToUpdate[field] = value;
     newTimeline[index] = itemToUpdate;
     onUpdate({ estimatedTimeline: newTimeline });
   };
@@ -162,7 +165,7 @@ export function EditStep({
     onUpdate({
       estimatedTimeline: [
         ...estimatedTimeline,
-        { month: newMonth, phase: '', activity: '' },
+        { month: newMonth, phase: 'New Phase', activity: '' },
       ],
     });
   };
@@ -495,13 +498,13 @@ export function EditStep({
                       <Input
                         type="number"
                         value={item.month}
-                        onChange={(e) => handleTimelineChange(index, 'month', e.target.value)}
                         className="w-20 text-center"
+                        disabled
                       />
                       <Input
                         value={item.phase}
-                        onChange={(e) => handleTimelineChange(index, 'phase', e.target.value)}
                         placeholder="cth., Perencanaan"
+                        disabled
                       />
                        <Input
                         value={item.activity}
@@ -674,13 +677,37 @@ export function EditStep({
           </div>
         </Tabs>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
-        </Button>
-        <Button onClick={onNext}>
-          Buat Proposal <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+      <CardFooter className="flex-col items-stretch gap-4">
+        <div className="relative rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-center gap-2">
+                <Bot className="h-6 w-6 text-primary"/>
+                <h3 className="text-lg font-semibold font-headline">Asisten AI</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Beri perintah dalam bahasa alami untuk mengedit proposal. Contoh: "tambah 2 frontend developer" atau "ubah margin jadi 25%".
+            </p>
+            <div className="flex items-center gap-2">
+              <Input 
+                placeholder="Ketik perintah Anda di sini..."
+                value={assistantCommand}
+                onChange={(e) => setAssistantCommand(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && onRunAssistant()}
+                disabled={isAssistantLoading}
+              />
+              <Button onClick={onRunAssistant} disabled={isAssistantLoading || !assistantCommand}>
+                {isAssistantLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Wand2 className="h-4 w-4" />}
+                <span className="sr-only">Kirim</span>
+              </Button>
+            </div>
+        </div>
+        <div className="flex justify-between">
+            <Button variant="outline" onClick={onBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+            </Button>
+            <Button onClick={onNext} variant="default">
+              Buat Proposal <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+        </div>
       </CardFooter>
     </Card>
   );

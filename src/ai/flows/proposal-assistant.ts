@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { getSalarySuggestion } from './get-salary-suggestion';
 
 // Schemas for the current state of the proposal, which will be the context for the agent.
 const RoleSchema = z.object({
@@ -43,20 +44,38 @@ export type CurrentProposalState = z.infer<typeof CurrentProposalStateSchema>;
 const addOrUpdateTeamMember = ai.defineTool(
   {
     name: 'addOrUpdateTeamMember',
-    description: 'Add a new role to the team or update the count of an existing role. Use this to add or remove personnel.',
+    description: 'Add a new role to the team or update the count of an existing role. Use this to add or remove personnel. When adding a new role, you must find a reasonable salary estimate.',
     inputSchema: z.object({
       role: z.string().describe('The job title, e.g., "Frontend Developer"'),
       count: z.number().describe('The number of people for this role. To remove a role, set this to 0.'),
     }),
-    outputSchema: z.string(),
+    outputSchema: z.object({
+        role: z.string(),
+        count: z.number(),
+        monthlySalary: z.number(),
+        salarySource: z.string(),
+    }),
   },
   async ({role, count}) => {
-    // In a real scenario, this would interact with the state management.
-    // For now, we just return a confirmation message.
-    if (count === 0) {
-        return `Successfully removed the role: ${role}.`;
+    let monthlySalary = 0;
+    let salarySource = "Manual";
+
+    if (count > 0) {
+        try {
+            const salaryInfo = await getSalarySuggestion({ role });
+            if (salaryInfo.suggestions && salaryInfo.suggestions.length > 0) {
+                // Take the second suggestion (e.g., Glassdoor) for a reasonable average
+                const suggestion = salaryInfo.suggestions[1] || salaryInfo.suggestions[0];
+                monthlySalary = suggestion.salary;
+                salarySource = suggestion.source;
+            }
+        } catch (e) {
+            // Could not get salary, will default to 0
+            salarySource = "Estimasi AI Gagal";
+        }
     }
-    return `Successfully added/updated role: ${count}x ${role}.`;
+    
+    return { role, count, monthlySalary, salarySource };
   }
 );
 
@@ -69,13 +88,16 @@ const updateCosts = ai.defineTool(
             profitMargin: z.number().optional().describe('The new profit margin as a percentage (e.g., 25 for 25%).'),
             technicalModal: z.number().optional().describe('The new technical modal cost in IDR.'),
         }),
-        outputSchema: z.string(),
+        outputSchema: z.object({
+            profitMargin: z.number().optional(),
+            technicalModal: z.number().optional(),
+        }),
     },
     async (input) => {
-        let updates = [];
-        if(input.profitMargin !== undefined) updates.push(`profit margin to ${input.profitMargin}%`);
-        if(input.technicalModal !== undefined) updates.push(`technical modal to IDR ${input.technicalModal.toLocaleString()}`);
-        return `Successfully updated ${updates.join(' and ')}.`;
+        return {
+            profitMargin: input.profitMargin,
+            technicalModal: input.technicalModal
+        };
     }
 );
 
@@ -83,17 +105,18 @@ const updateCosts = ai.defineTool(
 const updateTimeline = ai.defineTool(
     {
         name: 'updateTimeline',
-        description: 'Modify the project timeline by adding, removing, or changing phases and activities.',
+        description: 'Modify the project timeline by adding or removing months/activities. You cannot update existing items, only add or remove entire months.',
         inputSchema: z.object({
-            action: z.enum(['ADD', 'REMOVE', 'UPDATE']).describe('The action to perform.'),
-            month: z.number().describe('The month number to modify.'),
-            phase: z.string().optional().describe('The new phase name. Required for ADD/UPDATE.'),
-            activity: z.string().optional().describe('The new activity description. Required for ADD/UPDATE.'),
+            action: z.enum(['ADD', 'REMOVE']).describe('The action to perform.'),
+            durationInMonths: z.number().optional().describe('For ADD action, the number of months to add.'),
+            monthToRemove: z.number().optional().describe('For REMOVE action, the month number to remove.'),
+            activity: z.string().optional().describe('The activity description for the new month(s). Required for ADD.'),
+            phase: z.string().optional().describe('The phase name for the new month(s). Required for ADD.'),
         }),
-        outputSchema: z.string(),
+        outputSchema: z.any(), // Will return new items or index to remove
     },
-    async ({ action, month, phase, activity }) => {
-        return `Successfully performed ${action} for month ${month}.`;
+    async (input) => {
+       return input; // Pass the raw input to the reducer
     }
 );
 
@@ -101,15 +124,18 @@ const updateTimeline = ai.defineTool(
 const updateTechStack = ai.defineTool(
     {
         name: 'updateTechStack',
-        description: 'Modify the suggested technologies for the project.',
+        description: 'Modify the suggested technologies for the project by adding or removing one.',
         inputSchema: z.object({
             action: z.enum(['ADD', 'REMOVE']).describe('The action to perform.'),
             technology: z.string().describe('The technology to add or remove.'),
         }),
-        outputSchema: z.string(),
+        outputSchema: z.object({
+            action: z.enum(['ADD', 'REMOVE']),
+            technology: z.string(),
+        }),
     },
     async ({ action, technology }) => {
-        return `Successfully ${action === 'ADD' ? 'added' : 'removed'} ${technology} from the tech stack.`;
+        return { action, technology };
     }
 );
 
@@ -121,8 +147,6 @@ const ProposalAssistantInputSchema = z.object({
 });
 export type ProposalAssistantInput = z.infer<typeof ProposalAssistantInputSchema>;
 
-// The agent's output can be the updated state and a confirmation message.
-// For this example, we'll just return the confirmation message.
 const ProposalAssistantOutputSchema = z.object({
     response: z.string().describe('A confirmation message to the user about the action taken.'),
     updatedState: CurrentProposalStateSchema.describe('The new state of the proposal after modifications.')
@@ -131,13 +155,13 @@ export type ProposalAssistantOutput = z.infer<typeof ProposalAssistantOutputSche
 
 const assistantPrompt = ai.definePrompt({
     name: 'proposalAssistantPrompt',
-    input: { schema: ProposalAssistantInputSchema },
-    output: { schema: z.object({ response: z.string() }) },
     system: `You are a helpful assistant for editing a project proposal.
     Your task is to understand the user's command and use the available tools to modify the proposal data.
     The user will provide you with the current state of the proposal.
     After using a tool, formulate a friendly confirmation message to the user based on the tool's output.
-    If the user's command is unclear or cannot be fulfilled with the available tools, ask for clarification.`,
+    If the user's command is unclear or cannot be fulfilled with the available tools, ask for clarification.
+    Always provide a direct response based on the tool's action. Example: if a user says "add 2 designers", and the tool is called, your final response should be "Successfully added 2 UI/UX Designers." or similar.
+    Do not respond with "I have used the tool...". Just give the confirmation.`,
     tools: [addOrUpdateTeamMember, updateCosts, updateTimeline, updateTechStack],
 });
 
@@ -148,23 +172,89 @@ export const proposalAssistantFlow = ai.defineFlow(
         outputSchema: ProposalAssistantOutputSchema
     },
     async (input) => {
-        const { output: toolCalls } = await assistantPrompt(input);
-
-        // In a real implementation, you would process the tool calls and apply them
-        // to the `input.currentState` to generate an `updatedState`.
-        // For this example, we will just simulate this.
-        let updatedState = { ...input.currentState }; //
+        let updatedState = JSON.parse(JSON.stringify(input.currentState));
         let responseMessage = "I wasn't able to make a change. Can you try rephrasing?";
 
-        if (toolCalls) {
-            // This is a simplified simulation. A real implementation would handle
-            // multiple tool calls and more complex state updates.
-            responseMessage = toolCalls.response;
+        const {output} = await assistantPrompt(input);
+
+        if (!output.toolCalls || output.toolCalls.length === 0) {
+            return {
+                response: output.text || responseMessage,
+                updatedState: updatedState,
+            };
         }
 
+        let finalConfirmation = '';
+
+        for (const toolCall of output.toolCalls) {
+            const toolResponse = await ai.runTool(toolCall);
+            const toolName = toolCall.tool;
+            const toolOutput = toolResponse.output;
+
+            if (toolName === 'addOrUpdateTeamMember') {
+                const { role, count, monthlySalary, salarySource } = toolOutput;
+                const existingRoleIndex = updatedState.estimatedRoles.findIndex(r => r.role.toLowerCase() === role.toLowerCase());
+
+                if (existingRoleIndex !== -1) {
+                    if (count === 0) {
+                        updatedState.estimatedRoles.splice(existingRoleIndex, 1);
+                        finalConfirmation += `Successfully removed the role: ${role}. `;
+                    } else {
+                        updatedState.estimatedRoles[existingRoleIndex].count = count;
+                        finalConfirmation += `Successfully updated role: ${count}x ${role}. `;
+                    }
+                } else {
+                    if (count > 0) {
+                        updatedState.estimatedRoles.push({ role, count, monthlySalary, salarySource });
+                        finalConfirmation += `Successfully added role: ${count}x ${role}. `;
+                    }
+                }
+            } else if (toolName === 'updateCosts') {
+                let updates: string[] = [];
+                if (toolOutput.profitMargin !== undefined) {
+                    updatedState.costDetails.profitMargin = toolOutput.profitMargin;
+                    updates.push(`profit margin to ${toolOutput.profitMargin}%`);
+                }
+                if (toolOutput.technicalModal !== undefined) {
+                    updatedState.costDetails.technicalModal = toolOutput.technicalModal;
+                    updates.push(`technical modal to IDR ${toolOutput.technicalModal.toLocaleString()}`);
+                }
+                finalConfirmation += `Successfully updated ${updates.join(' and ')}. `;
+            } else if (toolName === 'updateTimeline') {
+                 if (toolOutput.action === 'ADD') {
+                    const lastMonth = updatedState.estimatedTimeline.length > 0 ? Math.max(...updatedState.estimatedTimeline.map(t => t.month)) : 0;
+                    for (let i = 1; i <= toolOutput.durationInMonths; i++) {
+                        updatedState.estimatedTimeline.push({
+                            month: lastMonth + i,
+                            phase: toolOutput.phase || 'New Phase',
+                            activity: toolOutput.activity || 'New Activity',
+                        });
+                    }
+                    finalConfirmation += `Successfully added ${toolOutput.durationInMonths} month(s) to the timeline. `;
+                } else if (toolOutput.action === 'REMOVE') {
+                    updatedState.estimatedTimeline = updatedState.estimatedTimeline.filter(item => item.month !== toolOutput.monthToRemove);
+                    // Re-index months
+                    updatedState.estimatedTimeline = updatedState.estimatedTimeline.sort((a,b) => a.month - b.month).map((item, index) => ({...item, month: index + 1}));
+                    finalConfirmation += `Successfully removed month ${toolOutput.monthToRemove}. `;
+                }
+            } else if (toolName === 'updateTechStack') {
+                 if (toolOutput.action === 'ADD') {
+                    updatedState.suggestedTechnologies.push(toolOutput.technology);
+                 } else {
+                    updatedState.suggestedTechnologies = updatedState.suggestedTechnologies.filter(t => t.toLowerCase() !== toolOutput.technology.toLowerCase());
+                 }
+                 finalConfirmation += `Successfully ${toolOutput.action === 'ADD' ? 'added' : 'removed'} ${toolOutput.technology}. `;
+            }
+        }
+        
+        const finalResponse = await assistantPrompt({
+            ...input,
+            context: output.toolCalls.map(tc => ({toolCall: tc, toolResponse: {output: "Action was successful"}})),
+        });
+
         return {
-            response: responseMessage,
-            updatedState: updatedState, // Return the (mock) updated state
+            response: finalResponse.output?.text || finalConfirmation.trim(),
+            updatedState: updatedState,
         };
     }
 );

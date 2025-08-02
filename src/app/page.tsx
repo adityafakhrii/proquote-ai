@@ -11,6 +11,7 @@ import { EditStep } from '@/components/proquote/edit-step';
 import { ProposalStep } from '@/components/proquote/proposal-step';
 import { Button } from '@/components/ui/button';
 import { ClientProfileStep } from '@/components/proquote/client-profile-step';
+import { runProposalAssistant, type CurrentProposalState } from '@/ai/flows/proposal-assistant';
 
 export type ClientProfile = {
   recipientName: string;
@@ -60,6 +61,8 @@ export default function Home() {
       signatureFont: 'dancing-script',
       signatureImage: null,
   });
+  const [assistantCommand, setAssistantCommand] = useState('');
+  const [isAssistantLoading, setIsAssistantLoading] = useState(false);
   const { toast } = useToast();
 
   const manpowerCost = useMemo(() => {
@@ -117,11 +120,10 @@ export default function Home() {
             'other': 'Lainnya'
         };
 
-        // If it's the first analysis (from upload step), just validate the document
         if (step === 1) {
             const result = await analyzeProjectRequirements({
                 documentDataUri: dataUri,
-                clientProfile: profileMap['startup'], // Use default for initial check
+                clientProfile: profileMap['startup'], 
             });
 
             if (!result.isProjectRequirementDocument) {
@@ -138,13 +140,10 @@ export default function Home() {
             return;
         }
 
-
-        // If it's the second analysis (from client profile step), populate the data
         const result = await analyzeProjectRequirements({
           documentDataUri: dataUri,
           clientProfile: profileMap[profileToAnalyze.profileType],
         });
-
 
         if (!result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
           toast({
@@ -169,7 +168,7 @@ export default function Home() {
         };
 
         setAnalysisResult(initialResult);
-        setStep(3); // Go to Edit Step
+        setStep(3);
         setIsLoading(false);
       };
       reader.onerror = () => {
@@ -193,7 +192,6 @@ export default function Home() {
       let newResult = { ...analysisResult, ...updates };
   
       if (updates.estimatedTimeline) {
-        // Sort, then re-index the months to be sequential
         newResult.estimatedTimeline = updates.estimatedTimeline
           .sort((a, b) => a.month - b.month)
           .map((item, index) => ({
@@ -224,6 +222,41 @@ export default function Home() {
         title: 'File Tidak Valid',
         description: 'Silakan unggah file gambar dengan format PNG.',
       });
+    }
+  };
+
+  const handleRunAssistant = async () => {
+    if (!assistantCommand || !analysisResult) return;
+    setIsAssistantLoading(true);
+
+    try {
+        const currentState: CurrentProposalState = {
+            estimatedRoles: analysisResult.estimatedRoles,
+            estimatedTimeline: analysisResult.estimatedTimeline,
+            costDetails: analysisResult.costDetails,
+            suggestedTechnologies: analysisResult.suggestedTechnologies,
+        };
+
+        const result = await runProposalAssistant({ command: assistantCommand, currentState });
+        
+        handleUpdate(result.updatedState);
+
+        toast({
+          title: 'Asisten AI',
+          description: result.response,
+        });
+
+        setAssistantCommand('');
+
+    } catch (error) {
+        console.error("Assistant failed:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Asisten Gagal',
+            description: 'Terjadi kesalahan saat menjalankan perintah. Silakan coba lagi.',
+        });
+    } finally {
+        setIsAssistantLoading(false);
     }
   };
 
@@ -302,6 +335,10 @@ export default function Home() {
               onNext={handleGenerateProposal}
               onBack={handleBack}
               manpowerCost={manpowerCost}
+              assistantCommand={assistantCommand}
+              setAssistantCommand={setAssistantCommand}
+              onRunAssistant={handleRunAssistant}
+              isAssistantLoading={isAssistantLoading}
             />
           )}
           {step === 4 && analysisResult && (
