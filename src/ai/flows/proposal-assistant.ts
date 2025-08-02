@@ -158,10 +158,8 @@ const assistantPrompt = ai.definePrompt({
     system: `You are a helpful assistant for editing a project proposal.
     Your task is to understand the user's command and use the available tools to modify the proposal data.
     The user will provide you with the current state of the proposal.
-    After using a tool, formulate a friendly confirmation message to the user based on the tool's output.
     If the user's command is unclear or cannot be fulfilled with the available tools, ask for clarification.
-    Always provide a direct response based on the tool's action. Example: if a user says "add 2 designers", and the tool is called, your final response should be "Successfully added 2 UI/UX Designers." or similar.
-    Do not respond with "I have used the tool...". Just give the confirmation.`,
+    Your final response should only be the confirmation message about the action taken.`,
     tools: [addOrUpdateTeamMember, updateCosts, updateTimeline, updateTechStack],
 });
 
@@ -176,31 +174,21 @@ export const proposalAssistantFlow = ai.defineFlow(
         let responseMessage = "I wasn't able to make a change. Can you try rephrasing?";
 
         const llmResponse = await assistantPrompt(input);
-        const output = llmResponse.output;
-
-        if (!output) {
-             return {
-                response: responseMessage,
-                updatedState: updatedState,
-            };
-        }
         
-        const toolCalls = output.toolCalls;
+        const toolCalls = llmResponse.toolCalls;
 
         if (!toolCalls || toolCalls.length === 0) {
             return {
-                response: output.text || responseMessage,
+                response: llmResponse.text || responseMessage,
                 updatedState: updatedState,
             };
         }
 
         let finalConfirmation = '';
-        const toolResponses = [];
 
         for (const toolCall of toolCalls) {
             const toolOutput = await ai.runTool(toolCall);
-            toolResponses.push(toolOutput);
-            
+                       
             const toolName = toolCall.tool;
            
             if (toolName === 'addOrUpdateTeamMember') {
@@ -262,16 +250,8 @@ export const proposalAssistantFlow = ai.defineFlow(
             }
         }
         
-        const finalResponse = await assistantPrompt({
-            ...input,
-            context: output.toolCalls.map((toolCall, i) => ({
-              toolCall,
-              toolResponse: toolResponses[i],
-            })),
-        });
-
         return {
-            response: finalResponse.output?.text || finalConfirmation.trim(),
+            response: finalConfirmation.trim() || responseMessage,
             updatedState: updatedState,
         };
     }
