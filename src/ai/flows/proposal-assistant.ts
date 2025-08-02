@@ -198,20 +198,20 @@ export const proposalAssistantFlow = ai.defineFlow(
         const toolResponses = [];
 
         for (const toolCall of toolCalls) {
-            const toolResponse = await ai.runTool(toolCall);
-            toolResponses.push(toolResponse);
+            const toolOutput = await ai.runTool(toolCall);
+            toolResponses.push(toolOutput);
             
             const toolName = toolCall.tool;
-            const toolOutput = toolResponse;
-
+           
             if (toolName === 'addOrUpdateTeamMember') {
                 const { role, count, monthlySalary, salarySource } = toolOutput;
                 const existingRoleIndex = updatedState.estimatedRoles.findIndex(r => r.role.toLowerCase() === role.toLowerCase());
 
                 if (existingRoleIndex !== -1) {
                     if (count === 0) {
+                        const removedRole = updatedState.estimatedRoles[existingRoleIndex];
                         updatedState.estimatedRoles.splice(existingRoleIndex, 1);
-                        finalConfirmation += `Successfully removed the role: ${role}. `;
+                        finalConfirmation += `Successfully removed the role: ${removedRole.role}. `;
                     } else {
                         updatedState.estimatedRoles[existingRoleIndex].count = count;
                         finalConfirmation += `Successfully updated role: ${count}x ${role}. `;
@@ -224,11 +224,11 @@ export const proposalAssistantFlow = ai.defineFlow(
                 }
             } else if (toolName === 'updateCosts') {
                 let updates: string[] = [];
-                if (toolOutput.profitMargin !== undefined) {
+                if (toolOutput.profitMargin !== undefined && toolOutput.profitMargin !== null) {
                     updatedState.costDetails.profitMargin = toolOutput.profitMargin;
                     updates.push(`profit margin to ${toolOutput.profitMargin}%`);
                 }
-                if (toolOutput.technicalModal !== undefined) {
+                if (toolOutput.technicalModal !== undefined && toolOutput.technicalModal !== null) {
                     updatedState.costDetails.technicalModal = toolOutput.technicalModal;
                     updates.push(`technical modal to IDR ${toolOutput.technicalModal.toLocaleString()}`);
                 }
@@ -252,7 +252,9 @@ export const proposalAssistantFlow = ai.defineFlow(
                 }
             } else if (toolName === 'updateTechStack') {
                  if (toolOutput.action === 'ADD') {
-                    updatedState.suggestedTechnologies.push(toolOutput.technology);
+                    if (!updatedState.suggestedTechnologies.find(t => t.toLowerCase() === toolOutput.technology.toLowerCase())) {
+                       updatedState.suggestedTechnologies.push(toolOutput.technology);
+                    }
                  } else {
                     updatedState.suggestedTechnologies = updatedState.suggestedTechnologies.filter(t => t.toLowerCase() !== toolOutput.technology.toLowerCase());
                  }
@@ -264,7 +266,7 @@ export const proposalAssistantFlow = ai.defineFlow(
             ...input,
             context: output.toolCalls.map((toolCall, i) => ({
               toolCall,
-              toolResponse: { output: toolResponses[i] },
+              toolResponse: toolResponses[i],
             })),
         });
 
