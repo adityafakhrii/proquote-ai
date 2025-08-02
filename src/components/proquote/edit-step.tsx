@@ -150,7 +150,7 @@ export function EditStep({
 
   const handleTimelineChange = (
     index: number,
-    field: 'activity',
+    field: 'activity' | 'phase',
     value: string
   ) => {
     const newTimeline = [...estimatedTimeline];
@@ -503,8 +503,8 @@ export function EditStep({
                       />
                       <Input
                         value={item.phase}
+                        onChange={(e) => handleTimelineChange(index, 'phase', e.target.value)}
                         placeholder="cth., Perencanaan"
-                        disabled
                       />
                        <Input
                         value={item.activity}
