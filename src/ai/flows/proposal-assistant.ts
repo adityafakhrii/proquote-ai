@@ -176,8 +176,10 @@ export const proposalAssistantFlow = ai.defineFlow(
         let responseMessage = "I wasn't able to make a change. Can you try rephrasing?";
 
         const {output} = await assistantPrompt(input);
+        
+        const toolCalls = output.toolCalls;
 
-        if (!output.toolCalls || output.toolCalls.length === 0) {
+        if (!toolCalls || toolCalls.length === 0) {
             return {
                 response: output.text || responseMessage,
                 updatedState: updatedState,
@@ -185,11 +187,14 @@ export const proposalAssistantFlow = ai.defineFlow(
         }
 
         let finalConfirmation = '';
+        const toolResponses = [];
 
-        for (const toolCall of output.toolCalls) {
+        for (const toolCall of toolCalls) {
             const toolResponse = await ai.runTool(toolCall);
+            toolResponses.push(toolResponse);
+            
             const toolName = toolCall.tool;
-            const toolOutput = toolResponse.output;
+            const toolOutput = toolResponse;
 
             if (toolName === 'addOrUpdateTeamMember') {
                 const { role, count, monthlySalary, salarySource } = toolOutput;
@@ -249,7 +254,10 @@ export const proposalAssistantFlow = ai.defineFlow(
         
         const finalResponse = await assistantPrompt({
             ...input,
-            context: output.toolCalls.map(tc => ({toolCall: tc, toolResponse: {output: "Action was successful"}})),
+            context: output.toolCalls.map((toolCall, i) => ({
+              toolCall,
+              toolResponse: { output: toolResponses[i] },
+            })),
         });
 
         return {
