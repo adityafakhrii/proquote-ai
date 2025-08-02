@@ -175,7 +175,15 @@ export const proposalAssistantFlow = ai.defineFlow(
         let updatedState = JSON.parse(JSON.stringify(input.currentState));
         let responseMessage = "I wasn't able to make a change. Can you try rephrasing?";
 
-        const {output} = await assistantPrompt(input);
+        const llmResponse = await assistantPrompt(input);
+        const output = llmResponse.output;
+
+        if (!output) {
+             return {
+                response: responseMessage,
+                updatedState: updatedState,
+            };
+        }
         
         const toolCalls = output.toolCalls;
 
