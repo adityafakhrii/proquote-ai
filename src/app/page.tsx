@@ -11,7 +11,6 @@ import { EditStep } from '@/components/proquote/edit-step';
 import { ProposalStep } from '@/components/proquote/proposal-step';
 import { Button } from '@/components/ui/button';
 import { ClientProfileStep } from '@/components/proquote/client-profile-step';
-import { runProposalAssistant, type CurrentProposalState } from '@/ai/flows/proposal-assistant';
 
 export type ClientProfile = {
   recipientName: string;
@@ -61,8 +60,6 @@ export default function Home() {
       signatureFont: 'dancing-script',
       signatureImage: null,
   });
-  const [assistantCommand, setAssistantCommand] = useState('');
-  const [isAssistantLoading, setIsAssistantLoading] = useState(false);
   const { toast } = useToast();
 
   const manpowerCost = useMemo(() => {
@@ -225,41 +222,6 @@ export default function Home() {
     }
   };
 
-  const handleRunAssistant = async () => {
-    if (!assistantCommand || !analysisResult) return;
-    setIsAssistantLoading(true);
-
-    try {
-        const currentState: CurrentProposalState = {
-            estimatedRoles: analysisResult.estimatedRoles,
-            estimatedTimeline: analysisResult.estimatedTimeline,
-            costDetails: analysisResult.costDetails,
-            suggestedTechnologies: analysisResult.suggestedTechnologies,
-        };
-
-        const result = await runProposalAssistant({ command: assistantCommand, currentState });
-        
-        handleUpdate(result.updatedState);
-
-        toast({
-          title: 'Asisten AI',
-          description: result.response,
-        });
-
-        setAssistantCommand('');
-
-    } catch (error) {
-        console.error("Assistant failed:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Asisten Gagal',
-            description: 'Terjadi kesalahan saat menjalankan perintah. Silakan coba lagi.',
-        });
-    } finally {
-        setIsAssistantLoading(false);
-    }
-  };
-
   const handleGenerateProposal = () => {
     setStep(4);
   };
@@ -335,10 +297,6 @@ export default function Home() {
               onNext={handleGenerateProposal}
               onBack={handleBack}
               manpowerCost={manpowerCost}
-              assistantCommand={assistantCommand}
-              setAssistantCommand={setAssistantCommand}
-              onRunAssistant={handleRunAssistant}
-              isAssistantLoading={isAssistantLoading}
             />
           )}
           {step === 4 && analysisResult && (
