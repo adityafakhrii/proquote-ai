@@ -6,3 +6,4 @@ config();
 import '@/ai/flows/suggest-technologies.ts';
 import '@/ai/flows/analyze-project-requirements.ts';
 import '@/ai/flows/get-salary-suggestion.ts';
+import '@/ai/flows/proposal-assistant.ts';
