@@ -168,22 +168,26 @@ export function ProposalStep({
                 <div className="border rounded-lg">
                     <Table>
                         <TableBody>
-                            <TableRow>
-                                <TableCell className="text-muted-foreground">Modal Teknis</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(costDetails.technicalModal)}</TableCell>
-                            </TableRow>
+                            {costDetails.technicalModal > 0 && (
+                                <TableRow>
+                                    <TableCell className="text-muted-foreground">Modal Teknis</TableCell>
+                                    <TableCell className="text-right font-medium">{formatCurrency(costDetails.technicalModal)}</TableCell>
+                                </TableRow>
+                            )}
                             <TableRow>
                                 <TableCell className="text-muted-foreground">Tenaga Kerja (Manpower)</TableCell>
                                 <TableCell className="text-right font-medium">{formatCurrency(manpowerCost)}</TableCell>
                             </TableRow>
-                            <TableRow>
+                             <TableRow>
                                 <TableCell className="text-muted-foreground">Subtotal Biaya</TableCell>
                                 <TableCell className="text-right font-semibold">{formatCurrency(subtotalCost)}</TableCell>
                             </TableRow>
-                             <TableRow>
-                                <TableCell className="text-muted-foreground">Profit/Margin ({costDetails.profitMargin}%)</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(profitAmount)}</TableCell>
-                            </TableRow>
+                             {costDetails.profitMargin > 0 && (
+                                <TableRow>
+                                    <TableCell className="text-muted-foreground">Profit/Margin ({costDetails.profitMargin}%)</TableCell>
+                                    <TableCell className="text-right font-medium">{formatCurrency(profitAmount)}</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </div>
@@ -234,9 +238,9 @@ export function ProposalStep({
             <div className="bg-secondary/50 p-4 rounded-lg">
                 <h4 className="font-semibold flex items-center mb-2">Termin Pembayaran Bertahap</h4>
                 <ul className="list-decimal list-inside text-sm text-muted-foreground pl-4">
-                    <li><span className="font-semibold text-foreground">DP (50%):</span> {formatCurrency(grandTotal * 0.5)} di awal proyek.</li>
-                    <li><span className="font-semibold text-foreground">Progress (30%):</span> {formatCurrency(grandTotal * 0.3)} setelah penyelesaian tahap pengembangan.</li>
-                    <li><span className="font-semibold text-foreground">Pelunasan (20%):</span> {formatCurrency(grandTotal * 0.2)} setelah serah terima proyek.</li>
+                    {proposalDetails.paymentTerms.map(term => (
+                        <li key={term.id}><span className="font-semibold text-foreground">Termin {term.percentage}%:</span> {formatCurrency(grandTotal * (term.percentage / 100))} - {term.description}</li>
+                    ))}
                 </ul>
                 {proposalDetails.paymentBank && (
                     <div className='mt-4 pt-4 border-t'>

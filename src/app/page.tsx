@@ -18,6 +18,12 @@ export type ClientProfile = {
   profileType: 'startup' | 'multinational' | 'government' | 'other';
 };
 
+export type PaymentTerm = {
+  id: number;
+  percentage: number;
+  description: string;
+};
+
 export type ProposalDetails = {
     subject: string;
     from: string;
@@ -28,6 +34,7 @@ export type ProposalDetails = {
     signatureName: string;
     signatureFont: 'dancing-script' | 'pacifico' | 'sacramento' | 'great-vibes';
     signatureImage: string | null;
+    paymentTerms: PaymentTerm[];
 };
 
 export type EditableAnalysis = Required<Omit<AnalyzeProjectRequirementsOutput, 'isProjectRequirementDocument' | 'costDetails'>> & {
@@ -61,6 +68,11 @@ export default function Home() {
       signatureName: '',
       signatureFont: 'dancing-script',
       signatureImage: null,
+      paymentTerms: [
+        { id: 1, percentage: 50, description: 'DP di awal proyek.' },
+        { id: 2, percentage: 30, description: 'Setelah penyelesaian tahap pengembangan.' },
+        { id: 3, percentage: 20, description: 'Setelah serah terima proyek.' },
+      ]
   });
   const { toast } = useToast();
 
@@ -245,8 +257,12 @@ export default function Home() {
     }
   };
 
-  const handleUpdateProposalDetails = (updates: Partial<ProposalDetails>) => {
+  const handleUpdateProposalDetails = (updates: Partial<Omit<ProposalDetails, 'paymentTerms'>>) => {
       setProposalDetails(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleUpdatePaymentTerms = (updates: PaymentTerm[]) => {
+    setProposalDetails(prev => ({ ...prev, paymentTerms: updates }));
   };
   
   const handleSignatureImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -293,15 +309,20 @@ export default function Home() {
         profileType: 'startup'
     });
     setProposalDetails({
-        subject: 'Proposal Penawaran Proyek Pengembangan Perangkat Lunak',
-        from: 'ProQuoteAI Solutions',
-        paymentBank: '',
-        paymentAccountName: '',
-        paymentAccountNumber: '',
-        signatureType: 'font',
-        signatureName: '',
-        signatureFont: 'dancing-script',
-        signatureImage: null,
+      subject: 'Proposal Penawaran Proyek Pengembangan Perangkat Lunak',
+      from: 'ProQuoteAI Solutions',
+      paymentBank: '',
+      paymentAccountName: '',
+      paymentAccountNumber: '',
+      signatureType: 'font',
+      signatureName: '',
+      signatureFont: 'dancing-script',
+      signatureImage: null,
+      paymentTerms: [
+        { id: 1, percentage: 50, description: 'DP di awal proyek.' },
+        { id: 2, percentage: 30, description: 'Setelah penyelesaian tahap pengembangan.' },
+        { id: 3, percentage: 20, description: 'Setelah serah terima proyek.' },
+      ]
     });
   };
 
@@ -343,6 +364,7 @@ export default function Home() {
               proposalDetails={proposalDetails}
               onUpdate={handleUpdate}
               onUpdateProposalDetails={handleUpdateProposalDetails}
+              onUpdatePaymentTerms={handleUpdatePaymentTerms}
               onSignatureImageChange={handleSignatureImageChange}
               onNext={handleGenerateProposal}
               onBack={handleBack}

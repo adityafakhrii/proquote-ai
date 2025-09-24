@@ -1,6 +1,6 @@
 'use client';
 
-import type { EditableAnalysis, ProposalDetails } from '@/app/page';
+import type { EditableAnalysis, ProposalDetails, PaymentTerm } from '@/app/page';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -29,7 +29,8 @@ interface EditStepProps {
   analysisResult: EditableAnalysis;
   proposalDetails: ProposalDetails;
   onUpdate: (updates: Partial<EditableAnalysis>) => void;
-  onUpdateProposalDetails: (updates: Partial<ProposalDetails>) => void;
+  onUpdateProposalDetails: (updates: Partial<Omit<ProposalDetails, 'paymentTerms'>>) => void;
+  onUpdatePaymentTerms: (updates: PaymentTerm[]) => void;
   onSignatureImageChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onNext: () => void;
   onBack: () => void;
@@ -60,6 +61,7 @@ export function EditStep({
   proposalDetails,
   onUpdate,
   onUpdateProposalDetails,
+  onUpdatePaymentTerms,
   onSignatureImageChange,
   onNext,
   onBack,
@@ -202,6 +204,26 @@ export function EditStep({
   const handleRemoveFeature = (index: number) => {
     onUpdate({ requiredFeatures: requiredFeatures.filter((_, i) => i !== index) });
   };
+
+  const handlePaymentTermChange = (id: number, field: 'percentage' | 'description', value: string | number) => {
+    const newTerms = proposalDetails.paymentTerms.map(term => {
+      if (term.id === id) {
+        return { ...term, [field]: value };
+      }
+      return term;
+    });
+    onUpdatePaymentTerms(newTerms);
+  };
+
+  const handleAddPaymentTerm = () => {
+    const newId = Math.max(0, ...proposalDetails.paymentTerms.map(t => t.id)) + 1;
+    onUpdatePaymentTerms([...proposalDetails.paymentTerms, { id: newId, percentage: 0, description: '' }]);
+  };
+
+  const handleRemovePaymentTerm = (id: number) => {
+    onUpdatePaymentTerms(proposalDetails.paymentTerms.filter(term => term.id !== id));
+  };
+
 
   const onSuggestSalary = async (index: number, role: string) => {
     if (!role) return;
@@ -442,12 +464,12 @@ export function EditStep({
                 </div>
                 <div className="grid md:grid-cols-2 gap-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="technical-modal">Modal Teknis (IDR)</Label>
-                     <p className="text-xs text-muted-foreground">Termasuk biaya untuk lisensi software, sewa server, domain, dll.</p>
+                    <Label htmlFor="technical-modal">Modal Teknis (IDR) (Opsional)</Label>
+                     <p className="text-xs text-muted-foreground">Termasuk biaya untuk lisensi software, sewa server, domain, dll. Kosongkan jika tidak ada.</p>
                       <Input
                         id="technical-modal"
                         type="text"
-                        value={formatNumber(costDetails.technicalModal)}
+                        value={costDetails.technicalModal > 0 ? formatNumber(costDetails.technicalModal) : ''}
                         onChange={(e) => handleCostChange('technicalModal', e.target.value)}
                         onBlur={(e) => {
                           const numericValue = parseFormattedNumber(e.target.value);
@@ -457,12 +479,13 @@ export function EditStep({
                       />
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="profit-margin">Margin Keuntungan (%)</Label>
+                    <Label htmlFor="profit-margin">Margin Keuntungan (%) (Opsional)</Label>
+                     <p className="text-xs text-muted-foreground">Kosongkan jika tidak ada margin keuntungan.</p>
                     <div className="flex items-center max-w-xs">
                         <Input
                           id="profit-margin"
                           type="number"
-                          value={costDetails.profitMargin === 0 ? '' : costDetails.profitMargin}
+                          value={costDetails.profitMargin > 0 ? costDetails.profitMargin : ''}
                           onChange={(e) => handleCostChange('profitMargin', e.target.value)}
                           placeholder="cth., 20"
                           className="rounded-r-none"
@@ -577,6 +600,39 @@ export function EditStep({
                            <Input id="from" value={proposalDetails.from} onChange={(e) => onUpdateProposalDetails({ from: e.target.value })}/>
                         </div>
                      </div>
+                 </div>
+
+                 <div>
+                    <h3 className="text-lg font-semibold mb-4">Skema Pembayaran</h3>
+                     <div className="space-y-2">
+                      {proposalDetails.paymentTerms.map((term, index) => (
+                        <div key={term.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
+                          <div className="flex items-center max-w-xs">
+                              <Input
+                                type="number"
+                                value={term.percentage > 0 ? term.percentage : ''}
+                                onChange={(e) => handlePaymentTermChange(term.id, 'percentage', parseInt(e.target.value) || 0)}
+                                placeholder="%"
+                                className="w-20 rounded-r-none"
+                              />
+                              <span className="flex items-center justify-center bg-muted text-muted-foreground h-10 w-10 rounded-r-md border border-l-0 border-input">
+                                  <Percent className="h-4 w-4"/>
+                              </span>
+                          </div>
+                          <Input
+                            value={term.description}
+                            onChange={(e) => handlePaymentTermChange(term.id, 'description', e.target.value)}
+                            placeholder="Deskripsi termin, cth., DP di awal proyek"
+                          />
+                          <Button variant="ghost" size="icon" onClick={() => handleRemovePaymentTerm(term.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button variant="outline" className="mt-4" onClick={handleAddPaymentTerm}>
+                      <Plus className="mr-2 h-4 w-4" /> Tambah Termin Pembayaran
+                    </Button>
                  </div>
 
                  <div>
