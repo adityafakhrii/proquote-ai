@@ -6,7 +6,7 @@ import {
   type AnalyzeProjectRequirementsOutput,
 } from '@/ai/flows/analyze-project-requirements';
 import { useToast } from '@/hooks/use-toast';
-import { UploadStep } from '@/components/proquote/upload-step';
+import { UploadStep, type InputMode } from '@/components/proquote/upload-step';
 import { EditStep } from '@/components/proquote/edit-step';
 import { ProposalStep } from '@/components/proquote/proposal-step';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,8 @@ export default function Home() {
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [inputMode, setInputMode] = useState<InputMode>('upload');
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] =
     useState<EditableAnalysis | null>(null);
@@ -91,93 +93,135 @@ export default function Home() {
     }
   };
 
-  const handleAnalyze = async (profile?: ClientProfile) => {
-    if (!file) {
-      toast({
-        variant: 'destructive',
-        title: 'Tidak Ada File yang Dipilih',
-        description: 'Silakan pilih PDF persyaratan proyek untuk melanjutkan.',
-      });
-      return;
+  const analyzeWithDescription = async (profileToAnalyze: ClientProfile) => {
+    const profileMap = {
+        'startup': 'Startup kecil',
+        'multinational': 'Perusahaan multinasional',
+        'government': 'Lembaga pemerintah',
+        'other': 'Lainnya'
+    };
+    
+    const analysisInput = {
+      projectDescription: projectDescription,
+      clientProfile: profileMap[profileToAnalyze.profileType],
+    };
+
+    if (step === 1) {
+        const result = await analyzeProjectRequirements({
+            ...analysisInput,
+            clientProfile: profileMap['startup'],
+        });
+        if (!result.isProjectRequirementDocument) {
+            toast({ variant: 'destructive', title: 'Deskripsi Tidak Sesuai', description: 'Deskripsi yang Anda berikan tidak tampak seperti deskripsi proyek. Mohon perjelas.' });
+            setIsLoading(false);
+            return;
+        }
+        setStep(2);
+        setIsLoading(false);
+        return;
     }
+    
+    const result = await analyzeProjectRequirements(analysisInput);
+    handleAnalysisResult(result);
+  };
 
-    setIsLoading(true);
+  const analyzeWithFile = (profileToAnalyze: ClientProfile) => {
+     if (!file) return;
 
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
         const dataUri = reader.result as string;
-        
-        const profileToAnalyze = profile || clientProfile;
         const profileMap = {
             'startup': 'Startup kecil',
             'multinational': 'Perusahaan multinasional',
             'government': 'Lembaga pemerintah',
             'other': 'Lainnya'
         };
+        
+        const analysisInput = {
+          documentDataUri: dataUri,
+          clientProfile: profileMap[profileToAnalyze.profileType],
+        };
 
         if (step === 1) {
             const result = await analyzeProjectRequirements({
-                documentDataUri: dataUri,
-                clientProfile: profileMap['startup'], 
+                ...analysisInput,
+                clientProfile: profileMap['startup'],
             });
-
             if (!result.isProjectRequirementDocument) {
-              toast({
-                variant: 'destructive',
-                title: 'Dokumen Tidak Sesuai',
-                description: 'Dokumen yang Anda unggah bukan dokumen persyaratan proyek. Silakan coba lagi.',
-              });
-              setIsLoading(false);
-              return;
+                toast({ variant: 'destructive', title: 'Dokumen Tidak Sesuai', description: 'Dokumen yang Anda unggah bukan dokumen persyaratan proyek. Silakan coba lagi.' });
+                setIsLoading(false);
+                return;
             }
             setStep(2);
             setIsLoading(false);
             return;
         }
-
-        const result = await analyzeProjectRequirements({
-          documentDataUri: dataUri,
-          clientProfile: profileMap[profileToAnalyze.profileType],
-        });
-
-        if (!result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
-          toast({
-            variant: 'destructive',
-            title: 'Analisis Gagal',
-            description: 'AI tidak dapat mengekstrak detail dari dokumen. Pastikan dokumen Anda adalah dokumen persyaratan proyek yang jelas.',
-          });
-          setIsLoading(false);
-          return;
-        }
         
-        const initialResult: EditableAnalysis = {
-          projectSummary: result.projectSummary,
-          requiredFeatures: result.requiredFeatures,
-          estimatedRoles: result.estimatedRoles,
-          estimatedTimeline: result.estimatedTimeline.sort((a, b) => a.month - b.month),
-          suggestedTechnologies: result.suggestedTechnologies,
-          costDetails: {
-            technicalModal: result.costDetails.technicalModal,
-            profitMargin: result.costDetails.profitMargin,
-          }
-        };
-
-        setAnalysisResult(initialResult);
-        setStep(3);
-        setIsLoading(false);
-      };
-      reader.onerror = () => {
+        const result = await analyzeProjectRequirements(analysisInput);
+        handleAnalysisResult(result);
+    };
+    reader.onerror = () => {
         throw new Error('Gagal membaca file.');
-      };
+    };
+  };
+
+  const handleAnalysisResult = (result: AnalyzeProjectRequirementsOutput) => {
+    if (!result.projectSummary || !result.requiredFeatures || !result.estimatedRoles || !result.costDetails || !result.estimatedTimeline || !result.suggestedTechnologies) {
+      toast({
+        variant: 'destructive',
+        title: 'Analisis Gagal',
+        description: 'AI tidak dapat mengekstrak detail dari input Anda. Pastikan input Anda adalah deskripsi atau dokumen persyaratan proyek yang jelas.',
+      });
+      setIsLoading(false);
+      return;
+    }
+    
+    const initialResult: EditableAnalysis = {
+      projectSummary: result.projectSummary,
+      requiredFeatures: result.requiredFeatures,
+      estimatedRoles: result.estimatedRoles,
+      estimatedTimeline: result.estimatedTimeline.sort((a, b) => a.month - b.month),
+      suggestedTechnologies: result.suggestedTechnologies,
+      costDetails: {
+        technicalModal: result.costDetails.technicalModal,
+        profitMargin: result.costDetails.profitMargin,
+      }
+    };
+
+    setAnalysisResult(initialResult);
+    setStep(3);
+    setIsLoading(false);
+  };
+
+
+  const handleAnalyze = async (profile?: ClientProfile) => {
+    if (inputMode === 'upload' && !file) {
+      toast({ variant: 'destructive', title: 'Tidak Ada File yang Dipilih', description: 'Silakan pilih PDF persyaratan proyek untuk melanjutkan.' });
+      return;
+    }
+    if (inputMode === 'describe' && !projectDescription) {
+        toast({ variant: 'destructive', title: 'Deskripsi Kosong', description: 'Silakan deskripsikan proyek Anda untuk melanjutkan.' });
+        return;
+    }
+
+    setIsLoading(true);
+    const profileToAnalyze = profile || clientProfile;
+
+    try {
+        if (inputMode === 'describe') {
+            await analyzeWithDescription(profileToAnalyze);
+        } else {
+            analyzeWithFile(profileToAnalyze);
+        }
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
         title: 'Analisis Gagal',
         description:
-          'Terjadi kesalahan saat menganalisis dokumen Anda. Silakan coba lagi.',
+          'Terjadi kesalahan saat menganalisis input Anda. Silakan coba lagi.',
       });
       setIsLoading(false);
     }
@@ -240,6 +284,8 @@ export default function Home() {
     setStep(1);
     setFile(null);
     setFileName('');
+    setProjectDescription('');
+    setInputMode('upload');
     setAnalysisResult(null);
     setClientProfile({
         recipientName: '',
@@ -270,9 +316,13 @@ export default function Home() {
         <div className="w-full max-w-4xl transition-all duration-300">
           {step === 1 && (
             <UploadStep
+              inputMode={inputMode}
+              setInputMode={setInputMode}
               onFileChange={handleFileChange}
+              onDescriptionChange={(e) => setProjectDescription(e.target.value)}
               onNext={() => handleAnalyze()}
               fileName={fileName}
+              projectDescription={projectDescription}
               isLoading={isLoading}
             />
           )}
